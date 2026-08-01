@@ -1,41 +1,43 @@
 import React from 'react';
-import { Sparkles, HelpCircle, ShieldCheck, PlayCircle, ArrowRight, Lock } from 'lucide-react';
+import { Sparkles, HelpCircle, ShieldCheck, ArrowRight, Lock } from 'lucide-react';
 import { kidAudio } from '../utils/audio';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function HomeScreen({ account, stars, onSelectModule, onOpenTutorial, onOpenParentModal }) {
-  const childName = account?.childName || 'Teman Pintar';
+  const { t, lang } = useLanguage();
+  const childName = account?.childName || t('childDefaultName');
 
   const activeModules = [
     {
       id: 'spelling',
-      title: 'Belajar Mengeja',
+      title: t('spellingTitle'),
       image: '/spelling_kids.jpg',
       color: 'card-blue',
-      badge: 'Aktif',
+      badge: lang === 'id' ? 'Aktif' : 'Active',
       available: true
     },
     {
       id: 'math',
-      title: 'Berhitung Ceria',
+      title: t('mathTitle'),
       image: '/math_kids.jpg',
       color: 'card-green',
-      badge: 'Aktif',
+      badge: lang === 'id' ? 'Aktif' : 'Active',
       available: true
     },
     {
       id: 'coding',
-      title: 'Coding Anak',
+      title: t('codingTitle'),
       image: '/coding_kids.jpg',
       color: 'card-orange',
-      badge: 'Aktif',
+      badge: lang === 'id' ? 'Aktif' : 'Active',
       available: true
     },
     {
       id: 'voice',
-      title: 'Ruang Sahabat AI',
+      title: t('voiceTitle'),
       image: '/social_kids.jpg',
       color: 'card-purple',
-      badge: 'Suara',
+      badge: lang === 'id' ? 'Suara' : 'Voice',
       available: true
     }
   ];
@@ -43,66 +45,50 @@ export default function HomeScreen({ account, stars, onSelectModule, onOpenTutor
   const upcomingModules = [
     {
       id: 'minigames',
-      title: 'Mini Games Ceria',
+      title: lang === 'id' ? 'Mini Games Ceria' : 'Fun Mini Games',
       image: '/minigames_kids.jpg',
       color: 'card-pink',
-      badge: 'Segera',
+      badge: lang === 'id' ? 'Segera' : 'Soon',
       available: false
     },
     {
       id: 'dongeng',
-      title: 'Cerita Dongeng',
+      title: lang === 'id' ? 'Cerita Dongeng' : 'Fairy Tales',
       image: '/dongeng_kids.jpg',
       color: 'card-yellow',
-      badge: 'Segera',
+      badge: lang === 'id' ? 'Segera' : 'Soon',
       available: false
     },
     {
       id: 'hijaiyah',
-      title: 'Belajar Hijaiyah',
+      title: lang === 'id' ? 'Belajar Hijaiyah' : 'Hijaiyah Letters',
       image: '/hijaiyah_kids.jpg',
       color: 'card-emerald',
-      badge: 'Segera',
+      badge: lang === 'id' ? 'Segera' : 'Soon',
       available: false
     },
     {
       id: 'nabi',
-      title: 'Kisah Nabi & Sahabat',
+      title: lang === 'id' ? 'Kisah Nabi' : 'Prophet Stories',
       image: '/nabi_kids.jpg',
       color: 'card-amber',
-      badge: 'Segera',
+      badge: lang === 'id' ? 'Segera' : 'Soon',
       available: false
     },
     {
       id: 'singing',
-      title: 'Menyanyi Bersama',
+      title: lang === 'id' ? 'Menyanyi Bersama' : 'Sing Along',
       image: '/singing_kids.jpg',
       color: 'card-indigo',
-      badge: 'Segera',
+      badge: lang === 'id' ? 'Segera' : 'Soon',
       available: false
     },
     {
       id: 'coloring',
-      title: 'Modul Mewarnai',
+      title: lang === 'id' ? 'Modul Mewarnai' : 'Coloring Fun',
       image: '/coloring_kids.jpg',
       color: 'card-rose',
-      badge: 'Segera',
-      available: false
-    },
-    {
-      id: 'drawing',
-      title: 'Modul Menggambar',
-      image: '/drawing_kids.jpg',
-      color: 'card-cyan',
-      badge: 'Segera',
-      available: false
-    },
-    {
-      id: 'sports',
-      title: 'Modul Olahraga',
-      image: '/sports_kids.jpg',
-      color: 'card-lime',
-      badge: 'Segera',
+      badge: lang === 'id' ? 'Segera' : 'Soon',
       available: false
     }
   ];
@@ -110,7 +96,10 @@ export default function HomeScreen({ account, stars, onSelectModule, onOpenTutor
   const handleCardClick = (mod) => {
     kidAudio.playPop();
     if (!mod.available) {
-      kidAudio.speak(`Modul ${mod.title} akan segera hadir dalam pembaruan berikutnya ya teman-teman! Tetap semangat!`);
+      const msg = lang === 'id'
+        ? `Modul ${mod.title} akan segera hadir dalam pembaruan berikutnya ya teman-teman! Tetap semangat!`
+        : `Module ${mod.title} is coming soon in the next update! Stay tuned!`;
+      kidAudio.speak(msg);
       return;
     }
     onSelectModule(mod.id);
@@ -122,15 +111,15 @@ export default function HomeScreen({ account, stars, onSelectModule, onOpenTutor
       {/* Sleek Greeting Sub-Header */}
       <section className="home-greeting-bar glass-panel">
         <div className="greeting-text">
-          <h2>Selamat Datang, {childName}! 👋</h2>
-          <p>Pilih modul favoritmu dan mainkan bersama teman-teman!</p>
+          <h2>{t('welcomeUser', { name: childName })}</h2>
+          <p>{t('readyMessage')}</p>
         </div>
       </section>
 
       {/* ACTIVE MODULES GRID */}
       <section className="home-section">
         <div className="section-title-row">
-          <h3>🌟 Modul Utama (Siap Dimainkan)</h3>
+          <h3>🌟 {lang === 'id' ? 'Modul Utama (Siap Dimainkan)' : 'Main Modules (Ready to Play)'}</h3>
         </div>
 
         <div className="modules-grid-visual">
@@ -148,7 +137,7 @@ export default function HomeScreen({ account, stars, onSelectModule, onOpenTutor
               <div className="visual-card-footer">
                 <h4 className="visual-card-title">{mod.title}</h4>
                 <button className="btn-visual-play">
-                  <span>Mulai Main</span>
+                  <span>{lang === 'id' ? 'Mulai Main' : 'Start Play'}</span>
                   <ArrowRight size={18} />
                 </button>
               </div>
@@ -160,8 +149,12 @@ export default function HomeScreen({ account, stars, onSelectModule, onOpenTutor
       {/* UPCOMING MODULES PLACEHOLDERS GRID */}
       <section className="home-section mt-8">
         <div className="section-title-row">
-          <h3>🚀 Modul Petualangan Baru (Akan Datang)</h3>
-          <span className="section-subtitle">Nantikan keseruan modul-modul ini dalam pembaruan berikutnya!</span>
+          <h3>🚀 {lang === 'id' ? 'Modul Petualangan Baru (Akan Datang)' : 'New Adventure Modules (Coming Soon)'}</h3>
+          <span className="section-subtitle">
+            {lang === 'id' 
+              ? 'Nantikan keseruan modul-modul ini dalam pembaruan berikutnya!'
+              : 'Look forward to these exciting modules in upcoming updates!'}
+          </span>
         </div>
 
         <div className="modules-grid-visual">
@@ -182,7 +175,7 @@ export default function HomeScreen({ account, stars, onSelectModule, onOpenTutor
               <div className="visual-card-footer">
                 <h4 className="visual-card-title text-muted-title">{mod.title}</h4>
                 <button className="btn-visual-play btn-upcoming-soon">
-                  <span>Segera Hadir</span>
+                  <span>{lang === 'id' ? 'Segera Hadir' : 'Coming Soon'}</span>
                 </button>
               </div>
             </div>
@@ -203,8 +196,8 @@ export default function HomeScreen({ account, stars, onSelectModule, onOpenTutor
             <HelpCircle size={28} />
           </div>
           <div>
-            <h4>Tutorial &amp; Petunjuk</h4>
-            <p>Pelajari cara bermain &amp; kumpulkan bintang</p>
+            <h4>{t('quickTutorial')}</h4>
+            <p>{lang === 'id' ? 'Pelajari cara bermain & kumpulkan bintang' : 'Learn how to play & collect stars'}</p>
           </div>
           <Sparkles className="sparkle-icon" size={20} />
         </div>
@@ -220,8 +213,8 @@ export default function HomeScreen({ account, stars, onSelectModule, onOpenTutor
             <ShieldCheck size={28} />
           </div>
           <div>
-            <h4>Area Orang Tua &amp; Dashboard</h4>
-            <p>Pantau screen time, progres, &amp; kontrol pertemanan</p>
+            <h4>{t('parentDashboard')}</h4>
+            <p>{lang === 'id' ? 'Pantau screen time, progres, & kontrol pertemanan' : 'Monitor screen time, progress, & safety'}</p>
           </div>
         </div>
       </section>

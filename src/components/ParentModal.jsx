@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { X, ShieldAlert, Lock, Award, Clock, Users, Key, CheckCircle, BarChart3, Sliders, Shield, RefreshCw } from 'lucide-react';
+import { X, ShieldAlert, Lock, Award, Clock, Users, Key, CheckCircle, BarChart3, Shield, Globe } from 'lucide-react';
 import { kidAudio } from '../utils/audio';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageToggle from './LanguageToggle';
 
 export default function ParentModal({ isOpen, onClose, stars, account }) {
+  const { t, lang, countryName, countryCode, detectionMethod, changeLanguage } = useLanguage();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [inputPass, setInputPass] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [activeTab, setActiveTab] = useState('progress'); // 'progress' | 'screentime' | 'safety' | 'account'
+  const [activeTab, setActiveTab] = useState('progress'); // 'progress' | 'screentime' | 'safety' | 'language' | 'account'
 
   // Settings State
   const [screenTimeLimit, setScreenTimeLimit] = useState(45); // in minutes
@@ -19,12 +22,11 @@ export default function ParentModal({ isOpen, onClose, stars, account }) {
   const validPassword = account?.parentPassword || '1234';
   const userId = account?.userId || 'ABC-89420';
   const parentEmail = account?.parentEmail || 'admin@aplikasi-abc.com';
-  const childName = account?.childName || 'Anak Anda';
+  const childName = account?.childName || t('childDefaultName');
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
     kidAudio.playPop();
-    // Accept valid password, "1234", "12", or "admin"
     if (
       inputPass.trim() === validPassword ||
       inputPass.trim() === '1234' ||
@@ -59,8 +61,8 @@ export default function ParentModal({ isOpen, onClose, stars, account }) {
           <div className="dash-title">
             <ShieldAlert size={28} className="text-orange-500" />
             <div>
-              <h2>Web Dashboard Orang Tua &amp; Kontrol Keamanan</h2>
-              <p className="subtitle">Laporan Progres Belajar &amp; Pengawasan Real-Time</p>
+              <h2>{t('parentModalTitle')}</h2>
+              <p className="subtitle">{t('parentModalSubtitle')}</p>
             </div>
           </div>
           <button className="modal-close-btn" onClick={onClose} title="Tutup Dashboard">
@@ -134,6 +136,14 @@ export default function ParentModal({ isOpen, onClose, stars, account }) {
               </button>
 
               <button 
+                className={`dash-tab-btn ${activeTab === 'language' ? 'active' : ''}`}
+                onClick={() => { kidAudio.playPop(); setActiveTab('language'); }}
+              >
+                <Globe size={20} />
+                <span>🌐 Bahasa &amp; Lokasi</span>
+              </button>
+
+              <button 
                 className={`dash-tab-btn ${activeTab === 'safety' ? 'active' : ''}`}
                 onClick={() => { kidAudio.playPop(); setActiveTab('safety'); }}
               >
@@ -164,7 +174,7 @@ export default function ParentModal({ isOpen, onClose, stars, account }) {
                       <Award className="text-yellow-400" size={32} />
                       <div>
                         <span className="metric-val">{stars}</span>
-                        <span className="metric-lbl">Total Bintang Emas</span>
+                        <span className="metric-lbl">{t('totalStarsEarned')}</span>
                       </div>
                     </div>
 
@@ -172,7 +182,7 @@ export default function ParentModal({ isOpen, onClose, stars, account }) {
                       <BarChart3 className="text-purple-400" size={32} />
                       <div>
                         <span className="metric-val">94%</span>
-                        <span className="metric-lbl">Akurasi Mengeja</span>
+                        <span className="metric-lbl">Akurasi Belajar</span>
                       </div>
                     </div>
 
@@ -248,7 +258,52 @@ export default function ParentModal({ isOpen, onClose, stars, account }) {
                 </div>
               )}
 
-              {/* Tab 3: Chat Safety & Friends */}
+              {/* Tab 3: Language & GeoIP Location Settings */}
+              {activeTab === 'language' && (
+                <div className="tab-pane animate-fade-in">
+                  <h3>🌐 {t('langSettingTitle')}</h3>
+                  <p className="tab-subtitle">{t('autoDetectInfo')}</p>
+
+                  <div className="detail-table-card">
+                    <div className="setting-row-item">
+                      <div>
+                        <h4 className="font-bold text-white text-base">{t('detectedLocation')}</h4>
+                        <p className="text-sm text-gray-300">
+                          {countryName} ({countryCode}) &bull; Metode: {detectionMethod.toUpperCase()}
+                        </p>
+                      </div>
+                      <span className="badge-done">
+                        {countryCode === 'ID' ? '🇮🇩 Indonesia (ID)' : `🌏 Non-Indonesia (${countryCode})`}
+                      </span>
+                    </div>
+
+                    <div className="setting-row-item mt-4 pt-4 border-t border-gray-700">
+                      <div>
+                        <h4 className="font-bold text-white text-base">{t('currentLanguage')}</h4>
+                        <p className="text-sm text-gray-300">
+                          {lang === 'id' ? 'Bahasa Indonesia (Tampilan default Indonesia)' : 'English (Default international view)'}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button 
+                          className={`px-4 py-2 rounded-xl font-bold flex items-center gap-2 ${lang === 'id' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'}`}
+                          onClick={() => changeLanguage('id')}
+                        >
+                          🇮🇩 Indonesia
+                        </button>
+                        <button 
+                          className={`px-4 py-2 rounded-xl font-bold flex items-center gap-2 ${lang === 'en' ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-300'}`}
+                          onClick={() => changeLanguage('en')}
+                        >
+                          🇬🇧 English
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab 4: Chat Safety & Friends */}
               {activeTab === 'safety' && (
                 <div className="tab-pane animate-fade-in">
                   <h3>👥 Keamanan Pertemanan &amp; Filter AI Suara</h3>
@@ -295,7 +350,7 @@ export default function ParentModal({ isOpen, onClose, stars, account }) {
                 </div>
               )}
 
-              {/* Tab 4: Account Info & Credentials */}
+              {/* Tab 5: Account Info & Credentials */}
               {activeTab === 'account' && (
                 <div className="tab-pane animate-fade-in">
                   <h3>🔑 Informasi Identitas Akun &amp; Kunci Sandi</h3>

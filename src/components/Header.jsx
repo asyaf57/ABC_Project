@@ -1,6 +1,8 @@
 import React from 'react';
 import { Star, ShieldCheck, Sparkles, Home, Flame } from 'lucide-react';
 import { kidAudio } from '../utils/audio';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageToggle from './LanguageToggle';
 
 export default function Header({ 
   activeScreen, 
@@ -9,16 +11,20 @@ export default function Header({
   account,
   onOpenParentModal 
 }) {
-  const childName = account?.childName || 'Anak Cerdas';
+  const { t, lang } = useLanguage();
+  const childName = account?.childName || t('childDefaultName');
   const avatarObj = account?.avatar;
   const userId = account?.userId || 'ABC-89420';
 
   return (
     <header className="kid-header sleek-header compact-header">
       
-      {/* ROW 1: CENTERED TITLE + ABC LOGO ON FAR RIGHT (ABOVE PARENTAL DASHBOARD) */}
+      {/* ROW 1: CENTERED TITLE + ABC LOGO & LANGUAGE TOGGLE */}
       <div className="header-top-row">
-        <div className="header-top-spacer-left"></div>
+        {/* Left Side: Language Toggle with Auto-location badge */}
+        <div className="header-top-left-toggle">
+          <LanguageToggle showLabel={true} compact={true} />
+        </div>
 
         {/* Centered Playful Colorful Title */}
         <div className="header-title-centered">
@@ -26,15 +32,15 @@ export default function Header({
             <span className="title-letter letter-a">A</span>
             <span className="title-letter letter-b">B</span>
             <span className="title-letter letter-c">C</span>
-            <span className="title-subtext"> (Ayo Belajar Cerdas)</span>
+            <span className="title-subtext"> {t('appSubTitle')}</span>
           </h1>
         </div>
 
-        {/* ABC Icon Logo on Far Right (Above Parental Dashboard) */}
+        {/* ABC Icon Logo on Far Right */}
         <div 
           className="logo-brand animate-float header-right-logo" 
           onClick={() => onNavigateHome()} 
-          title="ABC (Ayo Belajar Cerdas)"
+          title="ABC App"
         >
           <div className="logo-png-wrapper-compact">
             <img src="/ABC_icon.png" alt="ABC Logo" className="abc-logo-img-compact" />
@@ -70,19 +76,19 @@ export default function Header({
                 kidAudio.playPop();
                 onNavigateHome();
               }}
-              title="Kembali ke Beranda"
+              title={t('home')}
             >
               <div className="home-icon-bg">
                 <Home size={18} className="text-white" />
               </div>
-              <span>Beranda</span>
+              <span>{t('home')}</span>
             </button>
           )}
 
           {/* Streak Counter */}
-          <div className="header-stat-chip streak-chip" title="Streak Belajar">
+          <div className="header-stat-chip streak-chip" title="Streak">
             <Flame className="text-orange-500 fill-current animate-pulse" size={20} />
-            <span>1 Hari</span>
+            <span>1 {t('streak')}</span>
           </div>
 
           {/* Star Counter (Nilai Bintang) */}
@@ -90,9 +96,12 @@ export default function Header({
             className="star-badge animate-pop" 
             onClick={() => {
               kidAudio.playStar();
-              kidAudio.speak(`Hore! Kamu sudah mengumpulkan ${stars} bintang emas!`, 1.0, 1.3);
+              const voiceMsg = lang === 'id' 
+                ? `Hore! Kamu sudah mengumpulkan ${stars} bintang emas!`
+                : `Hooray! You collected ${stars} golden stars!`;
+              kidAudio.speak(voiceMsg, 1.0, 1.3);
             }}
-            title="Koleksi Bintang Emas"
+            title={t('starsTitle')}
           >
             <Star className="star-icon fill-current text-yellow-500 animate-spin-slow" size={22} />
             <span>{stars}</span>
@@ -106,11 +115,11 @@ export default function Header({
               kidAudio.playPop();
               onOpenParentModal();
             }}
-            title="Parental Dashboard"
-            aria-label="Parental Dashboard"
+            title={t('parentDashboard')}
+            aria-label={t('parentDashboard')}
           >
             <ShieldCheck size={24} className="shield-icon" />
-            <span className="tooltip-text">Parental Dashboard</span>
+            <span className="tooltip-text">{t('parentDashboard')}</span>
           </button>
         </div>
 
