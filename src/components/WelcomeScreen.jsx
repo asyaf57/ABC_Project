@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Sparkles, Mail, User, ShieldCheck, ArrowRight, BookOpen, Key, CheckCircle2, Copy, Camera, Upload } from 'lucide-react';
 import { kidAudio } from '../utils/audio';
+import { useLanguage } from '../context/LanguageContext';
+import { supabase } from '../utils/supabaseClient';
 
 const AVATARS = [
   { id: 'lion', emoji: '🦁', name: 'Singa Berani' },
@@ -13,17 +15,20 @@ const AVATARS = [
 const ADMIN_EMAIL = 'admin@aplikasi-abc.com';
 
 export default function WelcomeScreen({ onCompleteRegistration, onStartTutorialDirectly }) {
+  const { t } = useLanguage();
   const [parentEmail, setParentEmail] = useState('');
   const [childName, setChildName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0]);
   const [customPhotoUrl, setCustomPhotoUrl] = useState(null);
-  const [step, setStep] = useState('form'); // 'form' | 'credentials'
+  const [step, setStep] = useState('form'); // 'form' | 'credentials' | 'loading'
   const [generatedCredentials, setGeneratedCredentials] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleUseAdminEmail = () => {
     kidAudio.playPop();
-    setParentEmail(ADMIN_EMAIL);
+    // Gunakan email unik dengan timestamp agar bisa dipakai register berulang kali saat testing
+    setParentEmail(`admin+${Date.now()}@aplikasi-abc.com`);
     if (!childName) setChildName('Budi Kecil');
   };
 
@@ -48,14 +53,16 @@ export default function WelcomeScreen({ onCompleteRegistration, onStartTutorialD
     }
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     if (!parentEmail || !childName) {
       kidAudio.speak('Mohon isi email orang tua dan nama anak terlebih dahulu ya!');
       return;
     }
 
-    kidAudio.playSuccess();
+    setStep('loading');
+    setErrorMsg('');
+    kidAudio.playPop();
     
     // Generate unique User ID and Parent Password
     const randomNum = Math.floor(10000 + Math.random() * 90000);
@@ -63,19 +70,56 @@ export default function WelcomeScreen({ onCompleteRegistration, onStartTutorialD
     const userId = `ABC-${randomNum}`;
     const parentPassword = `PARENT-${randomPass}`;
 
-    const creds = {
-      parentEmail,
-      childName,
-      avatar: selectedAvatar,
-      userId,
-      parentPassword,
-      registeredAt: new Date().toISOString()
-    };
+    try {
+      // 1. Daftar ke Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: parentEmail,
+        password: parentPassword,
+      });
 
-    setGeneratedCredentials(creds);
-    setStep('credentials');
+      if (authError) throw authError;
 
-    kidAudio.speak(`Hore! Akun ${childName} berhasil dibuat. ID Pengguna kamu adalah ${userId}. Password untuk orang tua telah disimulasikan terkirim ke ${parentEmail}!`);
+      // 2. Simpan profil anak ke tabel 'profiles'
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: authData.user.id, // Gunakan UUID dari Auth
+            role: 'parent',
+            child_name: childName,
+            avatar_emoji: selectedAvatar.emoji,
+            avatar_url: selectedAvatar.photoUrl || null,
+            user_id_display: userId,
+            stars: 0,
+            screen_time_limit: 45,
+            voice_allowed: true,
+            friend_chat_allowed: true,
+            ai_filter_strict: true,
+          });
+
+        if (profileError) throw profileError;
+      }
+
+      const creds = {
+        parentEmail,
+        childName,
+        avatar: selectedAvatar,
+        userId,
+        parentPassword,
+        registeredAt: new Date().toISOString()
+      };
+
+      setGeneratedCredentials(creds);
+      setStep('credentials');
+      kidAudio.playSuccess();
+      kidAudio.speak(`Hore! Akun ${childName} berhasil dibuat. ID Pengguna kamu adalah ${userId}.`);
+
+    } catch (error) {
+      console.error('Error saat pendaftaran:', error);
+      setErrorMsg(`Terjadi kesalahan: ${error.message}`);
+      setStep('form');
+      kidAudio.playWrong();
+    }
   };
 
   const handleCopyCredentials = () => {
@@ -203,11 +247,27 @@ export default function WelcomeScreen({ onCompleteRegistration, onStartTutorialD
             </div>
 
             {/* Submit Action */}
-            <button type="submit" className="btn-kid btn-primary btn-xl w-full pulse-glow">
-              <span>Buat Akun &amp; Mulai Petualangan!</span>
-              <ArrowRight size={22} />
+            {errorMsg && (
+              <div className="bg-red-100 text-red-700 p-3 rounded-xl text-sm font-medium mb-4">
+                {errorMsg}
+              </div>
+            )}
+            <button type="submit" className="btn-kid btn-primary btn-xl w-full pulse-glow" disabled={step === 'loading'}>
+              {step === 'loading' ? (
+                <span>Memproses... ⏳</span>
+              ) : (
+                <>
+                  <span>Buat Akun &amp; Mulai Petualangan!</span>
+                  <ArrowRight size={22} />
+                </>
+              )}
             </button>
           </form>
+        ) : step === 'loading' ? (
+          <div className="welcome-loading text-center p-8 animate-pulse">
+            <h2 className="text-2xl font-bold text-orange-500 mb-4">Mempersiapkan Petualanganmu... 🚀</h2>
+            <p>Menyimpan data dengan aman...</p>
+          </div>
         ) : (
           /* Credentials Confirmation Step */
           <div className="credentials-step animate-scale-up">

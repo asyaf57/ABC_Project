@@ -6,11 +6,13 @@ import SpellingModule from './components/SpellingModule';
 import MathModule from './components/MathModule';
 import CodingModule from './components/CodingModule';
 import VoiceRoomPreview from './components/VoiceRoomPreview';
+import ColoringModule from './components/ColoringModule';
 import TutorialModal from './components/TutorialModal';
 import ParentModal from './components/ParentModal';
 import BottomNav from './components/BottomNav';
 import Footer from './components/Footer';
 import KidModuleBoundary from './components/KidModuleBoundary';
+import { supabase } from './utils/supabaseClient';
 
 export default function App() {
   const [account, setAccount] = useState(null);
@@ -22,8 +24,56 @@ export default function App() {
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [isParentModalOpen, setIsParentModalOpen] = useState(false);
 
-  // Load account from localStorage on mount
+  // Load account from Supabase Auth & LocalStorage fallback
   useEffect(() => {
+    // 1. Initial Session Check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        fetchUserProfile(session.user.id, session.user.email);
+      } else {
+        checkLocalAuth();
+      }
+    });
+
+    // 2. Listen to Auth Changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        fetchUserProfile(session.user.id, session.user.email);
+      } else {
+        setAccount(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchUserProfile = async (userId, email) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (data && !error) {
+        const remoteAccount = {
+          userId: data.user_id_display,
+          childName: data.child_name,
+          avatar: { emoji: data.avatar_emoji, photoUrl: data.avatar_url, id: 'custom' },
+          parentEmail: email,
+          stars: data.stars || 0
+        };
+        setAccount(remoteAccount);
+        setStars(data.stars || 0);
+        setActiveScreen('home');
+      }
+    } catch (err) {
+      console.warn("Gagal memuat profil Supabase:", err);
+      checkLocalAuth(); // Fallback if DB fetch fails
+    }
+  };
+
+  const checkLocalAuth = () => {
     try {
       const savedAccount = localStorage.getItem('abc_account_data');
       const savedStars = localStorage.getItem('abc_stars_count');
@@ -40,7 +90,7 @@ export default function App() {
     } catch (err) {
       console.warn('Error reading from localStorage:', err);
     }
-  }, []);
+  };
 
   const handleCompleteRegistration = (newAccount, startWithTutorial = false) => {
     setAccount(newAccount);
@@ -77,8 +127,17 @@ export default function App() {
     setActiveScreen('module');
   };
 
+  const getThemeClass = () => {
+    if (activeScreen === 'welcome') return 'bg-theme-welcome';
+    if (activeScreen === 'home') return 'bg-theme-home';
+    if (activeScreen === 'module') {
+      return `bg-theme-${activeModule}`;
+    }
+    return 'bg-theme-home';
+  };
+
   return (
-    <div className="app-container">
+    <div className={`app-container ${getThemeClass()}`}>
       {/* Show Header on Home & Module screens */}
       {activeScreen !== 'welcome' && (
         <Header 
@@ -123,9 +182,6 @@ export default function App() {
             {activeModule === 'math' && (
               <KidModuleBoundary key="math-module">
                 <MathModule onAddStars={handleAddStars} />
-              </KidModuleBoundary>
-            )}
-
             {activeModule === 'coding' && (
               <KidModuleBoundary key="coding-module">
                 <CodingModule onAddStars={handleAddStars} />
@@ -135,6 +191,12 @@ export default function App() {
             {activeModule === 'voice' && (
               <KidModuleBoundary key="voice-module">
                 <VoiceRoomPreview account={account} onAddStars={handleAddStars} />
+              </KidModuleBoundary>
+            )}
+
+            {activeModule === 'coloring' && (
+              <KidModuleBoundary key="coloring-module">
+                <ColoringModule onAddStars={handleAddStars} />
               </KidModuleBoundary>
             )}
           </>

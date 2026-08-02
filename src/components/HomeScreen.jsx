@@ -39,6 +39,14 @@ export default function HomeScreen({ account, stars, onSelectModule, onOpenTutor
       color: 'card-purple',
       badge: lang === 'id' ? 'Suara' : 'Voice',
       available: true
+    },
+    {
+      id: 'coloring',
+      title: lang === 'id' ? 'Modul Mewarnai' : 'Coloring Fun',
+      image: '/coloring_kids.jpg', // we don't have this image, but it's fine as a placeholder
+      color: 'card-rose',
+      badge: lang === 'id' ? 'Aktif' : 'Active',
+      available: true
     }
   ];
 
@@ -80,14 +88,6 @@ export default function HomeScreen({ account, stars, onSelectModule, onOpenTutor
       title: lang === 'id' ? 'Menyanyi Bersama' : 'Sing Along',
       image: '/singing_kids.jpg',
       color: 'card-indigo',
-      badge: lang === 'id' ? 'Segera' : 'Soon',
-      available: false
-    },
-    {
-      id: 'coloring',
-      title: lang === 'id' ? 'Modul Mewarnai' : 'Coloring Fun',
-      image: '/coloring_kids.jpg',
-      color: 'card-rose',
       badge: lang === 'id' ? 'Segera' : 'Soon',
       available: false
     }

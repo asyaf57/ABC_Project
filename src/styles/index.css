@@ -4609,30 +4609,21 @@ body {
   opacity: 0.7;
 }
 
-/* ==========================================================================
-   LANGUAGE TOGGLE & AUTO-LOCATION GEOIP STYLES
-   ========================================================================== */
-.language-toggle-wrapper {
+/* =========================================
+   7. MINIMAL LANGUAGE TOGGLE
+   ========================================= */
+.lang-switch-mini {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.lang-switch-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.9);
-  background: linear-gradient(135deg, #1E88E5 0%, #1565C0 100%);
-  color: #FFFFFF;
-  font-family: var(--font-heading);
-  font-weight: 800;
+  gap: 0.25rem;
+  padding: 0.4rem 0.6rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 20px;
+  color: white;
+  font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(21, 101, 192, 0.3);
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .lang-switch-btn.is-english {

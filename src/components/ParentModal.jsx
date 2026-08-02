@@ -3,12 +3,14 @@ import { X, ShieldAlert, Lock, Award, Clock, Users, Key, CheckCircle, BarChart3,
 import { kidAudio } from '../utils/audio';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggle from './LanguageToggle';
+import { supabase } from '../utils/supabaseClient';
 
 export default function ParentModal({ isOpen, onClose, stars, account }) {
   const { t, lang, countryName, countryCode, detectionMethod, changeLanguage } = useLanguage();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [inputPass, setInputPass] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('progress'); // 'progress' | 'screentime' | 'safety' | 'language' | 'account'
 
   // Settings State
@@ -24,21 +26,36 @@ export default function ParentModal({ isOpen, onClose, stars, account }) {
   const parentEmail = account?.parentEmail || 'admin@aplikasi-abc.com';
   const childName = account?.childName || t('childDefaultName');
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     kidAudio.playPop();
-    if (
-      inputPass.trim() === validPassword ||
-      inputPass.trim() === '1234' ||
-      inputPass.trim() === '12' ||
-      inputPass.trim().toLowerCase() === 'admin'
-    ) {
+    setIsSubmitting(true);
+    
+    // Allow quick admin simulation for testing UI without real auth
+    if (inputPass.trim().toLowerCase() === 'admin') {
       setIsAuthenticated(true);
       setErrorMsg('');
       kidAudio.playSuccess();
-    } else {
-      setErrorMsg(`Password salah. Gunakan Password Orang Tua (${validPassword}) atau PIN Default (1234).`);
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: parentEmail, // We use the one stored in state/props
+        password: inputPass,
+      });
+
+      if (error) throw error;
+      
+      setIsAuthenticated(true);
+      setErrorMsg('');
+      kidAudio.playSuccess();
+    } catch (err) {
+      setErrorMsg(`Login gagal: ${err.message}`);
       kidAudio.playWrong();
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -96,14 +113,15 @@ export default function ParentModal({ isOpen, onClose, stars, account }) {
                 />
 
                 <div className="auth-buttons-row">
-                  <button type="submit" className="btn-kid btn-primary">
-                    Buka Web Dashboard
+                  <button type="submit" className="btn-kid btn-primary" disabled={isSubmitting}>
+                    {isSubmitting ? 'Memproses...' : 'Buka Web Dashboard'}
                   </button>
 
                   <button 
                     type="button" 
                     className="btn-kid btn-accent" 
                     onClick={handleQuickAdminLogin}
+                    disabled={isSubmitting}
                   >
                     ⚡ Login Simulasi Admin
                   </button>
