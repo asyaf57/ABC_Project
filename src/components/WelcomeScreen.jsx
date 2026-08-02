@@ -436,6 +436,34 @@ export default function WelcomeScreen({ onCompleteRegistration, onStartTutorialD
             <h2 className="text-2xl font-bold text-orange-500 mb-4">Mempersiapkan Petualanganmu... 🚀</h2>
             <p>Menyimpan data dengan aman...</p>
           </div>
+        ) : step === 'verification' ? (
+          /* Verification Step */
+          <div className="credentials-step animate-scale-up text-center p-6">
+            <div className="success-banner justify-center flex-col gap-4 mb-6">
+              <Mail size={48} className="text-blue-500 animate-bounce-gentle" />
+              <div>
+                <h3 className="text-2xl font-bold text-blue-600">Satu Langkah Lagi! 📧</h3>
+                <p className="text-slate-600 mt-2">Kami telah mengirimkan tautan verifikasi ke email:</p>
+                <p className="text-lg font-bold text-slate-800 bg-white/50 inline-block px-4 py-2 rounded-xl mt-2">{parentEmail}</p>
+              </div>
+            </div>
+            
+            <p className="text-slate-600 font-medium mb-8">
+              Silakan periksa kotak masuk (atau folder spam) Anda, klik tautan verifikasi, lalu kembali ke sini untuk masuk (Login).
+            </p>
+
+            <button 
+              type="button"
+              className="btn-kid btn-primary btn-lg w-full"
+              onClick={() => {
+                setStep('form');
+                setAuthMode('login');
+              }}
+            >
+              <ArrowRight size={20} />
+              <span>Kembali untuk Masuk Akun</span>
+            </button>
+          </div>
         ) : (
           /* Credentials Confirmation Step (Only for register) */
           <div className="credentials-step animate-scale-up">
@@ -484,34 +512,6 @@ export default function WelcomeScreen({ onCompleteRegistration, onStartTutorialD
                 <span>Langsung Ke Beranda</span>
               </button>
             </div>
-          </div>
-        ) : step === 'verification' ? (
-          /* Verification Step */
-          <div className="credentials-step animate-scale-up text-center p-6">
-            <div className="success-banner justify-center flex-col gap-4 mb-6">
-              <Mail size={48} className="text-blue-500 animate-bounce-gentle" />
-              <div>
-                <h3 className="text-2xl font-bold text-blue-600">Satu Langkah Lagi! 📧</h3>
-                <p className="text-slate-600 mt-2">Kami telah mengirimkan tautan verifikasi ke email:</p>
-                <p className="text-lg font-bold text-slate-800 bg-white/50 inline-block px-4 py-2 rounded-xl mt-2">{parentEmail}</p>
-              </div>
-            </div>
-            
-            <p className="text-slate-600 font-medium mb-8">
-              Silakan periksa kotak masuk (atau folder spam) Anda, klik tautan verifikasi, lalu kembali ke sini untuk masuk (Login).
-            </p>
-
-            <button 
-              type="button"
-              className="btn-kid btn-primary btn-lg w-full"
-              onClick={() => {
-                setStep('form');
-                setAuthMode('login');
-              }}
-            >
-              <ArrowRight size={20} />
-              <span>Kembali untuk Masuk Akun</span>
-            </button>
           </div>
         )}
 
