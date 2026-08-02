@@ -304,47 +304,48 @@ export default function WelcomeScreen({ onCompleteRegistration, onStartTutorialD
                   <div className="avatar-selection-label">Pilih Avatar Karakter atau Unggah Foto Anak:</div>
                   
                   <div className="avatar-selection-grid">
-                {AVATARS.map((av) => (
-                  <div 
-                    key={av.id} 
-                    className={`avatar-ai-img-wrapper`}
-                    onClick={() => { kidAudio.playPop(); setSelectedAvatar(av); }}
-                    style={{ textAlign: 'center' }}
-                  >
-                    {av.photoUrl ? (
-                      <img 
-                        src={av.photoUrl} 
-                        alt={av.name} 
-                        className={`avatar-ai-img ${selectedAvatar.id === av.id ? 'selected' : ''}`} 
-                      />
-                    ) : (
-                      <div className={`avatar-item ${selectedAvatar.id === av.id ? 'selected' : ''}`} style={{ width: '100%', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', background: 'white', borderRadius: '50%', border: selectedAvatar.id === av.id ? '4px solid #4CAF50' : '3px solid #FFF', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
-                        {av.emoji}
+                    {AVATARS.map((av) => (
+                      <div 
+                        key={av.id} 
+                        onClick={() => { kidAudio.playPop(); setSelectedAvatar(av); }}
+                        style={{ textAlign: 'center', cursor: 'pointer' }}
+                      >
+                        {av.photoUrl ? (
+                          <img 
+                            src={av.photoUrl} 
+                            alt={av.name} 
+                            className={`avatar-ai-img ${selectedAvatar.id === av.id ? 'selected' : ''}`} 
+                          />
+                        ) : (
+                          <div style={{ width: '100%', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', background: 'white', borderRadius: '50%', border: selectedAvatar.id === av.id ? '4px solid #4CAF50' : '3px solid #E5E7EB', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                            {av.emoji}
+                          </div>
+                        )}
+                        <div style={{ fontSize: '0.65rem', color: '#6B7280', marginTop: '4px', fontWeight: 600 }}>{av.name.split(' ')[0]}</div>
                       </div>
-                    )}
+                    ))}
                   </div>
-                ))}
-              </div>
 
-                  <div className="avatar-grid">
-                    {/* Upload Photo Option */}
-                    <label className={`avatar-btn upload-photo-btn ${selectedAvatar.id === 'custom_photo' ? 'active' : ''}`}>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handlePhotoUpload}
-                        className="hidden-file-input"
-                      />
-                      {customPhotoUrl ? (
-                        <img src={customPhotoUrl} alt="Foto Anak" className="uploaded-avatar-thumb" />
-                      ) : (
-                        <Camera size={28} className="text-orange-500" />
-                      )}
-                      <span className="avatar-name">{customPhotoUrl ? 'Foto Terpasang' : '📷 Unggah Foto'}</span>
-                    </label>
-                  </div>
+                  {/* Upload Photo Option */}
+                  <label className={`avatar-btn upload-photo-btn ${selectedAvatar.id === 'custom_photo' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginTop: '8px' }}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      className="hidden-file-input"
+                    />
+                    {customPhotoUrl ? (
+                      <img src={customPhotoUrl} alt="Foto Anak" className="uploaded-avatar-thumb" />
+                    ) : (
+                      <Camera size={28} className="text-orange-500" />
+                    )}
+                    <span className="avatar-name">{customPhotoUrl ? 'Foto Terpasang ✅' : '📷 Unggah Foto Sendiri'}</span>
+                  </label>
                 </div>
+              </div>
               )}
+
+
 
               {/* Email & Password */}
               <div className="form-section accent-box">
