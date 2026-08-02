@@ -7,15 +7,15 @@ import {
 import { kidAudio } from '../utils/audio';
 
 const GAME_TABS = [
-  { id: 1, name: '1. Balok Ukuran 🧱', desc: 'Pemilahan Ukuran' },
-  { id: 2, name: '2. Kelompok Keranjang 🧺', desc: 'Klasifikasi Kategori' },
-  { id: 3, name: '3. Garis Algoritma ✏️', desc: 'Pathfinding Code' },
-  { id: 4, name: '4. Puzzle Gambar 🧩', desc: 'Pengenalan Pola' },
-  { id: 5, name: '5. Urutan Warna 🎨', desc: 'Pattern Sequencing' }
+  { id: 1, name: 'Balok Ukuran', emoji: '🧱', bg: 'linear-gradient(135deg, #fef08a, #fde047)', desc: 'Pemilahan Ukuran' },
+  { id: 2, name: 'Keranjang', emoji: '🧺', bg: 'linear-gradient(135deg, #a7f3d0, #6ee7b7)', desc: 'Klasifikasi Kategori' },
+  { id: 3, name: 'Garis Algoritma', emoji: '✏️', bg: 'linear-gradient(135deg, #bfdbfe, #93c5fd)', desc: 'Pathfinding Code' },
+  { id: 4, name: 'Puzzle Gambar', emoji: '🧩', bg: 'linear-gradient(135deg, #fbcfe8, #f9a8d4)', desc: 'Pengenalan Pola' },
+  { id: 5, name: 'Urutan Warna', emoji: '🎨', bg: 'linear-gradient(135deg, #e9d5ff, #d8b4fe)', desc: 'Pattern Sequencing' }
 ];
 
 export default function CodingModule({ onAddStars }) {
-  const [activeGameId, setActiveGameId] = useState(1);
+  const [activeGameId, setActiveGameId] = useState(null);
   const [score, setScore] = useState(0);
 
   // GAME 1: SIZE SORTING DRAG & DROP STATE
@@ -82,6 +82,11 @@ export default function CodingModule({ onAddStars }) {
     } else if (gameId === 5) {
       kidAudio.speak('Game 5: Perhatikan urutan pola warna dan pilih warna pelengkap yang tepat!');
     }
+  };
+
+  const handleBackToGallery = () => {
+    kidAudio.playPop();
+    setActiveGameId(null);
   };
 
   // GAME 1 DRAG & DROP LOGIC
@@ -300,21 +305,34 @@ export default function CodingModule({ onAddStars }) {
         </div>
       </div>
 
-      {/* Game Mode Tabs Selector */}
-      <div className="coding-tabs-bar">
-        {GAME_TABS.map((tab) => {
-          const isActive = activeGameId === tab.id;
-          return (
-            <button
-              key={tab.id}
-              className={`coding-tab-btn ${isActive ? 'active' : ''}`}
-              onClick={() => handleSelectGame(tab.id)}
-            >
-              <span>{tab.name}</span>
-            </button>
-          );
-        })}
-      </div>
+      {activeGameId === null ? (
+        <div className="module-gallery-container" style={{ marginTop: '20px' }}>
+          <div className="module-gallery-grid">
+            {GAME_TABS.map(tab => (
+              <button
+                key={tab.id}
+                className="module-gallery-card"
+                onClick={() => handleSelectGame(tab.id)}
+                style={{ '--card-bg': tab.bg }}
+              >
+                <div className="module-gallery-preview" style={{ background: tab.bg }}>
+                  {tab.emoji}
+                </div>
+                <div className="module-gallery-label">
+                  <span className="module-gallery-name">{tab.name}</span>
+                  <span className="module-gallery-desc">{tab.desc}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div style={{ padding: '0 20px', marginBottom: '10px' }}>
+          <button className="module-back-btn" onClick={handleBackToGallery}>
+            ← Kembali ke Menu Coding
+          </button>
+        </div>
+      )}
 
       {/* GAME 1: MEMINDAHKAN BALOK SESUAI UKURAN (DRAG & DROP) */}
       {activeGameId === 1 && (

@@ -9,11 +9,11 @@ import { kidAudio } from '../utils/audio';
 const VISUAL_ITEMS = ['🍎', '⭐', '🎈', '🚗', '🍓', '🐱', '🍪', '🚀'];
 
 const MODE_DEFS = [
-  { id: 1, name: 'Mode 1: Pemula (1-20)', badge: 'Pemula', color: 'badge-green', icon: VisualMathIcon },
-  { id: 2, name: 'Mode 2: Menengah (1-50)', badge: 'Menengah', color: 'badge-blue', icon: Binary },
-  { id: 3, name: 'Mode 3: Mahir (1-100)', badge: 'Mahir', color: 'badge-purple', icon: Trophy },
-  { id: 4, name: 'Mode 4: Perkalian Ceria', badge: 'Perkalian', color: 'badge-orange', icon: Grid },
-  { id: 5, name: 'Mode 5: Pembagian Ceria', badge: 'Pembagian', color: 'badge-red', icon: Divide }
+  { id: 1, name: 'Pemula (1-20)', badge: 'Pemula', color: 'badge-green', icon: VisualMathIcon, emoji: '🍎', bg: 'linear-gradient(135deg, #dcfce7, #86efac)', desc: 'Pengenalan & Penjumlahan visual' },
+  { id: 2, name: 'Menengah (1-50)', badge: 'Menengah', color: 'badge-blue', icon: Binary, emoji: '🔢', bg: 'linear-gradient(135deg, #e0f2fe, #7dd3fc)', desc: 'Penjumlahan & Pengurangan dasar' },
+  { id: 3, name: 'Mahir (1-100)', badge: 'Mahir', color: 'badge-purple', icon: Trophy, emoji: '🏆', bg: 'linear-gradient(135deg, #f3e8ff, #d8b4fe)', desc: 'Angka lebih besar & tantangan' },
+  { id: 4, name: 'Perkalian Ceria', badge: 'Perkalian', color: 'badge-orange', icon: Grid, emoji: '✖️', bg: 'linear-gradient(135deg, #ffedd5, #fdba74)', desc: 'Mengenal konsep perkalian' },
+  { id: 5, name: 'Pembagian Ceria', badge: 'Pembagian', color: 'badge-red', icon: Divide, emoji: '➗', bg: 'linear-gradient(135deg, #fee2e2, #fca5a5)', desc: 'Mengenal konsep pembagian' }
 ];
 
 function VisualMathIcon() {
@@ -21,7 +21,7 @@ function VisualMathIcon() {
 }
 
 export default function MathModule({ onAddStars }) {
-  const [activeModeId, setActiveModeId] = useState(1);
+  const [activeModeId, setActiveModeId] = useState(null);
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
 
@@ -139,10 +139,17 @@ export default function MathModule({ onAddStars }) {
     kidAudio.playPop();
     setActiveModeId(modeId);
     if (modeId === 1) {
+      kidAudio.speak('Mode Pemula!');
       generateMode1Question(mode1SubTab === 'sub' ? 'sub' : 'add');
     } else {
+      kidAudio.speak(`Mode ${modeId}!`);
       generateQuizForMode(modeId);
     }
+  };
+
+  const handleBackToGallery = () => {
+    kidAudio.playPop();
+    setActiveModeId(null);
   };
 
   const handleNumberClick = (num) => {
@@ -230,21 +237,34 @@ export default function MathModule({ onAddStars }) {
         </div>
       </div>
 
-      {/* 5 Difficulty Mode Selector Bar */}
-      <div className="math-mode-bar">
-        {MODE_DEFS.map((m) => {
-          const isActive = activeModeId === m.id;
-          return (
-            <button
-              key={m.id}
-              className={`math-mode-btn ${isActive ? 'active' : ''} ${m.color}`}
-              onClick={() => handleModeChange(m.id)}
-            >
-              <span>{m.name}</span>
-            </button>
-          );
-        })}
-      </div>
+      {activeModeId === null ? (
+        <div className="module-gallery-container" style={{ marginTop: '20px' }}>
+          <div className="module-gallery-grid">
+            {MODE_DEFS.map(mode => (
+              <button
+                key={mode.id}
+                className="module-gallery-card"
+                onClick={() => handleModeChange(mode.id)}
+                style={{ '--card-bg': mode.bg }}
+              >
+                <div className="module-gallery-preview" style={{ background: mode.bg }}>
+                  {mode.emoji}
+                </div>
+                <div className="module-gallery-label">
+                  <span className="module-gallery-name">{mode.name}</span>
+                  <span className="module-gallery-desc">{mode.desc}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div style={{ padding: '0 20px', marginBottom: '10px' }}>
+          <button className="module-back-btn" onClick={handleBackToGallery}>
+            ← Kembali ke Menu Matematika
+          </button>
+        </div>
+      )}
 
       {/* MODE 1: Pemula (1-20 & Bergambar) */}
       {activeModeId === 1 && (

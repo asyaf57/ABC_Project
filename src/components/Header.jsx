@@ -9,7 +9,8 @@ export default function Header({
   onNavigateHome, 
   stars, 
   account,
-  onOpenParentModal 
+  onOpenParentModal,
+  onOpenProfile 
 }) {
   const { t, lang } = useLanguage();
   const childName = account?.childName || t('childDefaultName');
@@ -52,8 +53,8 @@ export default function Header({
       <div className="header-bottom-row">
         
         {/* LEFT SIDE: User Photo Avatar + Name & ID */}
-        <div className="header-left-avatar">
-          <div className="header-user-profile animate-pop">
+        <div className="header-left-avatar" onClick={onOpenProfile} style={{ cursor: 'pointer' }} title="Pengaturan Profil">
+          <div className="header-user-profile animate-pop hover:scale-105 transition-transform">
             {avatarObj?.photoUrl ? (
               <img src={avatarObj.photoUrl} alt="Foto Profil" className="header-avatar-photo-compact" />
             ) : (

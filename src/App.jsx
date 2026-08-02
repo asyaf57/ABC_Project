@@ -12,6 +12,7 @@ import ParentModal from './components/ParentModal';
 import BottomNav from './components/BottomNav';
 import Footer from './components/Footer';
 import KidModuleBoundary from './components/KidModuleBoundary';
+import ProfileModal from './components/ProfileModal';
 import { supabase } from './utils/supabaseClient';
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
   // Modals
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [isParentModalOpen, setIsParentModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   // Load account from Supabase Auth & LocalStorage fallback
   useEffect(() => {
@@ -122,6 +124,20 @@ export default function App() {
     setActiveScreen('home');
   };
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn('Logout error', e);
+    }
+    localStorage.removeItem('abc_account_data');
+    localStorage.removeItem('abc_stars_count');
+    setAccount(null);
+    setStars(0);
+    setActiveScreen('welcome');
+    setIsProfileModalOpen(false);
+  };
+
   const handleSelectModule = (moduleId) => {
     setActiveModule(moduleId);
     setActiveScreen('module');
@@ -154,6 +170,7 @@ export default function App() {
           account={account}
           onOpenTutorial={() => setIsTutorialOpen(true)}
           onOpenParentModal={() => setIsParentModalOpen(true)}
+          onOpenProfile={() => setIsProfileModalOpen(true)}
         />
       )}
 
@@ -243,6 +260,15 @@ export default function App() {
           account={account}
         />
       )}
+
+      {/* Profile Settings & Logout Modal */}
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        account={account}
+        stars={stars}
+        onLogout={handleLogout}
+      />
     </div>
   );
 }
