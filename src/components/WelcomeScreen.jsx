@@ -5,11 +5,17 @@ import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../utils/supabaseClient';
 
 const AVATARS = [
-  { id: 'lion', emoji: '🦁', name: 'Singa Berani' },
-  { id: 'rabbit', emoji: '🐰', name: 'Kelinci Pintar' },
-  { id: 'fox', emoji: '🦊', name: 'Rubah Cerdas' },
-  { id: 'panda', emoji: '🐼', name: 'Panda Ceria' },
-  { id: 'rocket', emoji: '🚀', name: 'Kapten Roket' }
+  { id: 'indo_boy', emoji: '🧑🏽', photoUrl: '/assets/avatars/avatar_indo_boy.jpg', name: 'Bagus (Indonesia)' },
+  { id: 'indo_girl', emoji: '👧🏽', photoUrl: '/assets/avatars/avatar_indo_girl.jpg', name: 'Putri (Indonesia)' },
+  { id: 'china_boy', emoji: '🧑🏻', photoUrl: '/assets/avatars/avatar_china_boy.jpg', name: 'Wei (Tiongkok)' },
+  { id: 'china_girl', emoji: '👧🏻', photoUrl: '/assets/avatars/avatar_china_girl.jpg', name: 'Mei (Tiongkok)' },
+  { id: 'india_boy', emoji: '🧑🏾', photoUrl: '/assets/avatars/avatar_india_boy.jpg', name: 'Raj (India)' },
+  { id: 'india_girl', emoji: '👧🏾', photoUrl: '/assets/avatars/avatar_india_girl.jpg', name: 'Priya (India)' },
+  { id: 'euro_boy', emoji: '👱🏼‍♂️', photoUrl: '/assets/avatars/avatar_euro_boy.jpg', name: 'Leo (Eropa)' },
+  { id: 'euro_girl', emoji: '👱🏼‍♀️', photoUrl: '/assets/avatars/avatar_euro_girl.jpg', name: 'Emma (Eropa)' },
+  { id: 'robot', emoji: '🤖', photoUrl: '/assets/avatars/avatar_robot.jpg', name: 'Robo Pintar' },
+  { id: 'superhero', emoji: '🦸🏻', photoUrl: '/assets/avatars/avatar_superhero.jpg', name: 'Pahlawan Super' },
+  { id: 'lion', emoji: '🦁', name: 'Singa Berani' }
 ];
 
 export default function WelcomeScreen({ onCompleteRegistration, onStartTutorialDirectly }) {
@@ -253,58 +259,28 @@ export default function WelcomeScreen({ onCompleteRegistration, onStartTutorialD
   };
 
   return (
-    <div className="welcome-screen-container animate-fade-in">
-      <div className="welcome-card glass-panel" style={{ maxWidth: '600px' }}>
+    <div className="welcome-screen-bg animate-fade-in">
+      <div className="welcome-glass-card">
         
         {/* Welcome Header */}
-        <div className="welcome-header">
-          <div className="mascot-badge animate-bounce-gentle">
+        <div className="welcome-header" style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div className="mascot-badge animate-bounce-gentle" style={{ margin: '0 auto 16px auto', display: 'flex', justifyContent: 'center' }}>
             {selectedAvatar.photoUrl ? (
-              <img src={selectedAvatar.photoUrl} alt="Foto Profil" className="mascot-custom-img" />
+              <img src={selectedAvatar.photoUrl} alt="Foto Profil" className="mascot-custom-img" style={{ width: '90px', height: '90px' }} />
             ) : (
-              <span className="mascot-emoji">{selectedAvatar.emoji}</span>
+              <span className="mascot-emoji" style={{ fontSize: '4rem' }}>{selectedAvatar.emoji}</span>
             )}
           </div>
-          <h1 className="welcome-title">
-            {authMode === 'register' ? 'Bergabung dengan' : 'Selamat Datang di'} <span className="highlight-text">ABC</span>
+          <h1 className="bouncing-letters">
+            <span>A</span><span>B</span><span>C</span> <span>K</span><span>I</span><span>D</span><span>S</span>
           </h1>
           <p className="welcome-subtitle">
-            Platform Pembelajaran Interaktif &amp; Aman untuk Anak Cerdas! 🌟
+            {authMode === 'register' ? 'Daftar sekarang untuk mulai belajar dan bermain dengan gembira!' : 'Selamat datang kembali, Pahlawan Cilik! Ayo lanjutkan petualanganmu!'}
           </p>
         </div>
 
         {step === 'form' ? (
           <>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', justifyContent: 'center' }}>
-              <button 
-                type="button"
-                onClick={() => { kidAudio.playPop(); setAuthMode('register'); setErrorMsg(''); }}
-                style={{
-                  padding: '10px 24px', borderRadius: '100px', fontWeight: 'bold', fontSize: '1.1rem',
-                  border: authMode === 'register' ? 'none' : '2px solid #ddd',
-                  background: authMode === 'register' ? 'var(--primary-color)' : 'white',
-                  color: authMode === 'register' ? 'white' : '#666',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                Mendaftar Baru
-              </button>
-              <button 
-                type="button"
-                onClick={() => { kidAudio.playPop(); setAuthMode('login'); setErrorMsg(''); }}
-                style={{
-                  padding: '10px 24px', borderRadius: '100px', fontWeight: 'bold', fontSize: '1.1rem',
-                  border: authMode === 'login' ? 'none' : '2px solid #ddd',
-                  background: authMode === 'login' ? 'var(--accent-color)' : 'white',
-                  color: authMode === 'login' ? 'white' : '#666',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                Masuk Akun
-              </button>
-            </div>
 
             <form onSubmit={authMode === 'register' ? handleRegister : handleLogin} className="welcome-form">
               
@@ -327,23 +303,30 @@ export default function WelcomeScreen({ onCompleteRegistration, onStartTutorialD
 
                   <div className="avatar-selection-label">Pilih Avatar Karakter atau Unggah Foto Anak:</div>
                   
-                  <div className="avatar-grid">
-                    {/* Preset Avatars */}
-                    {AVATARS.map((avatar) => (
-                      <button
-                        key={avatar.id}
-                        type="button"
-                        className={`avatar-btn ${selectedAvatar.id === avatar.id ? 'active' : ''}`}
-                        onClick={() => {
-                          kidAudio.playPop();
-                          setSelectedAvatar(avatar);
-                        }}
-                      >
-                        <span className="avatar-emoji">{avatar.emoji}</span>
-                        <span className="avatar-name">{avatar.name}</span>
-                      </button>
-                    ))}
+                  <div className="avatar-selection-grid">
+                {AVATARS.map((av) => (
+                  <div 
+                    key={av.id} 
+                    className={`avatar-ai-img-wrapper`}
+                    onClick={() => { kidAudio.playPop(); setSelectedAvatar(av); }}
+                    style={{ textAlign: 'center' }}
+                  >
+                    {av.photoUrl ? (
+                      <img 
+                        src={av.photoUrl} 
+                        alt={av.name} 
+                        className={`avatar-ai-img ${selectedAvatar.id === av.id ? 'selected' : ''}`} 
+                      />
+                    ) : (
+                      <div className={`avatar-item ${selectedAvatar.id === av.id ? 'selected' : ''}`} style={{ width: '100%', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', background: 'white', borderRadius: '50%', border: selectedAvatar.id === av.id ? '4px solid #4CAF50' : '3px solid #FFF', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
+                        {av.emoji}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
 
+                  <div className="avatar-grid">
                     {/* Upload Photo Option */}
                     <label className={`avatar-btn upload-photo-btn ${selectedAvatar.id === 'custom_photo' ? 'active' : ''}`}>
                       <input
@@ -408,7 +391,7 @@ export default function WelcomeScreen({ onCompleteRegistration, onStartTutorialD
                 ) : (
                   <>
                     <span>{authMode === 'register' ? 'Buat Akun & Mulai!' : 'Masuk & Bermain!'}</span>
-                    <ArrowRight size={22} />
+                    {authMode === 'register' ? <Sparkles size={22} /> : <ArrowRight size={22} />}
                   </>
                 )}
               </button>
@@ -437,6 +420,14 @@ export default function WelcomeScreen({ onCompleteRegistration, onStartTutorialD
                   <img src="https://www.svgrepo.com/show/512317/github-142.svg" alt="GitHub" width="24" height="24" style={{ filter: 'brightness(0) invert(1)' }} />
                   Masuk dengan GitHub
                 </button>
+              </div>
+
+              <div className="auth-toggle-link">
+                {authMode === 'register' ? (
+                  <>Sudah punya akun orang tua? <span onClick={() => { kidAudio.playPop(); setAuthMode('login'); setErrorMsg(''); }}>Masuk di sini</span></>
+                ) : (
+                  <>Belum punya akun orang tua? <span onClick={() => { kidAudio.playPop(); setAuthMode('register'); setErrorMsg(''); }}>Daftar di sini</span></>
+                )}
               </div>
             </form>
           </>
