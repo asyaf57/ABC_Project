@@ -31,7 +31,7 @@ export default function App() {
     // 1. Initial Session Check
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        fetchUserProfile(session.user.id, session.user.email);
+        fetchUserProfile(session.user);
       } else {
         checkLocalAuth();
       }
@@ -40,7 +40,7 @@ export default function App() {
     // 2. Listen to Auth Changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        fetchUserProfile(session.user.id, session.user.email);
+        fetchUserProfile(session.user);
       } else {
         setAccount(null);
       }
@@ -49,25 +49,54 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchUserProfile = async (userId, email) => {
+  const fetchUserProfile = async (user) => {
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('id', user.id)
         .single();
+
+      // Jika profil tidak ada, buat baru berdasarkan metadata (kasus konfirmasi email)
+      if (error && error.code === 'PGRST116') {
+        const meta = user.user_metadata || {};
+        const { data: newProfile, error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            role: 'parent',
+            child_name: meta.child_name || 'Anak Pintar',
+            avatar_emoji: meta.avatar_emoji || '🦁',
+            avatar_url: meta.avatar_url || null,
+            user_id_display: meta.user_id_display || `ABC-${Math.floor(10000 + Math.random() * 90000)}`,
+            stars: 0,
+            screen_time_limit: 45,
+            voice_allowed: true,
+            friend_chat_allowed: true,
+            ai_filter_strict: true,
+          })
+          .select()
+          .single();
+        
+        if (!insertError) {
+          data = newProfile;
+          error = null;
+        }
+      }
       
       if (data && !error) {
         const remoteAccount = {
           userId: data.user_id_display,
           childName: data.child_name,
           avatar: { emoji: data.avatar_emoji, photoUrl: data.avatar_url, id: 'custom' },
-          parentEmail: email,
+          parentEmail: user.email,
           stars: data.stars || 0
         };
         setAccount(remoteAccount);
         setStars(data.stars || 0);
         setActiveScreen('home');
+      } else {
+        checkLocalAuth();
       }
     } catch (err) {
       console.warn("Gagal memuat profil Supabase:", err);

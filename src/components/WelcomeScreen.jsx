@@ -70,6 +70,14 @@ export default function WelcomeScreen({ onCompleteRegistration, onStartTutorialD
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: parentEmail,
         password: parentPassword,
+        options: {
+          data: {
+            child_name: childName,
+            avatar_emoji: selectedAvatar.emoji,
+            avatar_url: selectedAvatar.photoUrl || null,
+            user_id_display: userId
+          }
+        }
       });
 
       if (authError) throw authError;
@@ -92,7 +100,17 @@ export default function WelcomeScreen({ onCompleteRegistration, onStartTutorialD
             ai_filter_strict: true,
           });
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.warn('Gagal menyimpan ke profiles (mungkin karena belum verifikasi email):', profileError);
+        }
+      }
+
+      // 3. Cek apakah butuh verifikasi email (jika session null)
+      if (authData.user && !authData.session) {
+        setStep('verification');
+        kidAudio.playSuccess();
+        kidAudio.speak('Pendaftaran berhasil! Silakan periksa email untuk verifikasi.');
+        return;
       }
 
       const creds = {
@@ -138,13 +156,38 @@ export default function WelcomeScreen({ onCompleteRegistration, onStartTutorialD
 
       // Ambil data profil dari tabel profiles
       if (authData.user) {
-        const { data: profile, error: profileError } = await supabase
+        let { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', authData.user.id)
           .single();
           
-        if (profileError) throw profileError;
+        // Jika profil tidak ditemukan (mungkin terblokir saat daftar karena butuh verifikasi)
+        if (profileError && profileError.code === 'PGRST116') {
+          const meta = authData.user.user_metadata || {};
+          const { data: newProfile, error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: authData.user.id,
+              role: 'parent',
+              child_name: meta.child_name || 'Anak Pintar',
+              avatar_emoji: meta.avatar_emoji || '🦁',
+              avatar_url: meta.avatar_url || null,
+              user_id_display: meta.user_id_display || `ABC-${Math.floor(10000 + Math.random() * 90000)}`,
+              stars: 0,
+              screen_time_limit: 45,
+              voice_allowed: true,
+              friend_chat_allowed: true,
+              ai_filter_strict: true,
+            })
+            .select()
+            .single();
+
+          if (insertError) throw insertError;
+          profile = newProfile;
+        } else if (profileError) {
+          throw profileError;
+        }
 
         const creds = {
           parentEmail,
@@ -450,6 +493,34 @@ export default function WelcomeScreen({ onCompleteRegistration, onStartTutorialD
                 <span>Langsung Ke Beranda</span>
               </button>
             </div>
+          </div>
+        ) : step === 'verification' ? (
+          /* Verification Step */
+          <div className="credentials-step animate-scale-up text-center p-6">
+            <div className="success-banner justify-center flex-col gap-4 mb-6">
+              <Mail size={48} className="text-blue-500 animate-bounce-gentle" />
+              <div>
+                <h3 className="text-2xl font-bold text-blue-600">Satu Langkah Lagi! 📧</h3>
+                <p className="text-slate-600 mt-2">Kami telah mengirimkan tautan verifikasi ke email:</p>
+                <p className="text-lg font-bold text-slate-800 bg-white/50 inline-block px-4 py-2 rounded-xl mt-2">{parentEmail}</p>
+              </div>
+            </div>
+            
+            <p className="text-slate-600 font-medium mb-8">
+              Silakan periksa kotak masuk (atau folder spam) Anda, klik tautan verifikasi, lalu kembali ke sini untuk masuk (Login).
+            </p>
+
+            <button 
+              type="button"
+              className="btn-kid btn-primary btn-lg w-full"
+              onClick={() => {
+                setStep('form');
+                setAuthMode('login');
+              }}
+            >
+              <ArrowRight size={20} />
+              <span>Kembali untuk Masuk Akun</span>
+            </button>
           </div>
         )}
 
