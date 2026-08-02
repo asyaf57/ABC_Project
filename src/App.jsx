@@ -136,8 +136,13 @@ export default function App() {
     return 'bg-theme-home';
   };
 
+  useEffect(() => {
+    // Apply background theme to body
+    document.body.className = getThemeClass();
+  }, [activeScreen, activeModule]);
+
   return (
-    <div className={`app-container ${getThemeClass()}`}>
+    <div className="app-container">
       {/* Show Header on Home & Module screens */}
       {activeScreen !== 'welcome' && (
         <Header 
