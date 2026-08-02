@@ -530,7 +530,6 @@ export default function ColoringModule({ onAddStars }) {
   const [tool, setTool] = useState('fill');
   const [brushSize, setBrushSize] = useState(16);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [isFilling, setIsFilling] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [celebrationCount, setCelebrationCount] = useState(0);
 
@@ -608,12 +607,12 @@ export default function ColoringModule({ onAddStars }) {
     const {x, y} = getXY(e);
     const ctx = canvasRef.current.getContext('2d', { willReadFrequently: true });
     if (tool === 'fill') {
-      setIsFilling(true);
       kidAudio.playPop();
-      setTimeout(() => {
-        floodFill(ctx, x, y, activeColor);
-        setIsFilling(false);
-      }, 0);
+      // Run flood fill directly — no setState, no re-render, no overhead
+      // Change cursor via DOM ref to give visual feedback without React re-render
+      canvasRef.current.style.cursor = 'wait';
+      floodFill(ctx, x, y, activeColor);
+      canvasRef.current.style.cursor = 'crosshair';
     } else {
       setIsDrawing(true);
       ctx.beginPath();
@@ -764,12 +763,6 @@ export default function ColoringModule({ onAddStars }) {
 
           {/* Canvas Frame */}
           <div className="coloring-canvas-frame">
-            {isFilling && (
-              <div className="coloring-filling-overlay">
-                <div className="coloring-filling-spinner" />
-                <span>Mewarnai...</span>
-              </div>
-            )}
             <canvas
               ref={canvasRef}
               width={600}
