@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, ArrowLeft } from 'lucide-react';
+import { Sparkles, ArrowLeft, Volume2 } from 'lucide-react';
 import { kidAudio } from '../utils/audio';
 
 // Custom Full-Color Kid-Friendly Icons (SVGs)
