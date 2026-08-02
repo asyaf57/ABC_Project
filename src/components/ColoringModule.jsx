@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Palette, PaintBucket, Pen, Eraser, Download, RotateCcw, CheckCircle, Sparkles, Wand2, Volume2, Heart, Award } from 'lucide-react';
+import { Palette, PaintBucket, Pen, Eraser, Download, RotateCcw, CheckCircle, Sparkles, Volume2, Undo, Brush, Image as ImageIcon, Heart } from 'lucide-react';
 import { kidAudio } from '../utils/audio';
 
 // High Quality Kid-Friendly SVGs with thick black outlines & clear fillable regions
 const COLORING_PAGES = [
   {
     id: 'princess',
-    title: 'Putri Cantik Elsa',
+    title: 'Putri Elsa',
     icon: '👑',
     category: 'Dongeng',
     svg: `<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
@@ -66,7 +66,7 @@ const COLORING_PAGES = [
   },
   {
     id: 'superhero',
-    title: 'Spiderman Pahlawan',
+    title: 'Spiderman',
     icon: '🕸️',
     category: 'Aksi',
     svg: `<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
@@ -123,7 +123,7 @@ const COLORING_PAGES = [
   },
   {
     id: 'robot',
-    title: 'Robot Sahabat',
+    title: 'Robot Canggih',
     icon: '🤖',
     category: 'Teknologi',
     svg: `<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
@@ -183,7 +183,7 @@ const COLORING_PAGES = [
   },
   {
     id: 'gnome',
-    title: 'Kurcaci & Rumah Jamur',
+    title: 'Kurcaci Jamur',
     icon: '🍄',
     category: 'Petualangan',
     svg: `<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
@@ -230,7 +230,7 @@ const COLORING_PAGES = [
   },
   {
     id: 'dino',
-    title: 'Dino Cilik Lucu',
+    title: 'Dino Cilik',
     icon: '🦖',
     category: 'Hewan',
     svg: `<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
@@ -273,57 +273,46 @@ const COLORING_PAGES = [
   }
 ];
 
-// Rich Curated Color Palettes grouped by theme
-const PALETTES = [
-  {
-    name: 'Cerah & Ceria 🌈',
-    colors: [
-      { name: 'Merah Cabai', hex: '#FF2A2A' },
-      { name: 'Oranye Sunkist', hex: '#FF7A00' },
-      { name: 'Kuning Lemon', hex: '#FFD600' },
-      { name: 'Hijau Daun', hex: '#00E676' },
-      { name: 'Biru Laut', hex: '#00B0FF' },
-      { name: 'Nila Terang', hex: '#651FFF' },
-      { name: 'Ungu Permen', hex: '#D500F9' },
-      { name: 'Merah Muda', hex: '#FF1744' },
-    ]
-  },
-  {
-    name: 'Pastel Manis 🦄',
-    colors: [
-      { name: 'Stroberi Soft', hex: '#FFB7B2' },
-      { name: 'Peach Soft', hex: '#FFDAC1' },
-      { name: 'Kuning Mentega', hex: '#E2F0CB' },
-      { name: 'Hijau Mint', hex: '#B5EAD7' },
-      { name: 'Biru Awan', hex: '#C7CEEA' },
-      { name: 'Lavender', hex: '#E1BEE7' },
-      { name: 'Merah Muda Balet', hex: '#F8BBD0' },
-      { name: 'Krem Susu', hex: '#FFF9C4' },
-    ]
-  },
-  {
-    name: 'Karakter & Kulit 🪵',
-    colors: [
-      { name: 'Hitam Pekat', hex: '#1E1E1E' },
-      { name: 'Abu-Abu Robot', hex: '#9E9E9E' },
-      { name: 'Putih Bersih', hex: '#FFFFFF' },
-      { name: 'Kulit Cerah', hex: '#FFDFC4' },
-      { name: 'Kulit Sawo', hex: '#E0AC69' },
-      { name: 'Cokelat Kayu', hex: '#8D6E63' },
-      { name: 'Cokelat Tua', hex: '#4E342E' },
-      { name: 'Emas Mewah', hex: '#FFC107' },
-    ]
-  }
+// Rich palette presented directly in SQUARE COLOR TILES (Kotak Warna)
+const SQUARE_COLORS = [
+  // Vibrant Colors
+  { name: 'Merah Cabai', hex: '#FF2A2A', tag: 'Cerah' },
+  { name: 'Oranye Sunkist', hex: '#FF7A00', tag: 'Cerah' },
+  { name: 'Kuning Lemon', hex: '#FFD600', tag: 'Cerah' },
+  { name: 'Hijau Daun', hex: '#00E676', tag: 'Cerah' },
+  { name: 'Biru Laut', hex: '#00B0FF', tag: 'Cerah' },
+  { name: 'Nila Terang', hex: '#651FFF', tag: 'Cerah' },
+  { name: 'Ungu Permen', hex: '#D500F9', tag: 'Cerah' },
+  { name: 'Merah Muda', hex: '#FF1744', tag: 'Cerah' },
+
+  // Soft Pastels
+  { name: 'Stroberi Soft', hex: '#FFB7B2', tag: 'Pastel' },
+  { name: 'Peach Soft', hex: '#FFDAC1', tag: 'Pastel' },
+  { name: 'Kuning Mentega', hex: '#E2F0CB', tag: 'Pastel' },
+  { name: 'Hijau Mint', hex: '#B5EAD7', tag: 'Pastel' },
+  { name: 'Biru Awan', hex: '#C7CEEA', tag: 'Pastel' },
+  { name: 'Lavender', hex: '#E1BEE7', tag: 'Pastel' },
+  { name: 'Merah Balet', hex: '#F8BBD0', tag: 'Pastel' },
+  { name: 'Krem Susu', hex: '#FFF9C4', tag: 'Pastel' },
+
+  // Character & Skin & Neutrals
+  { name: 'Kulit Cerah', hex: '#FFDFC4', tag: 'Alam' },
+  { name: 'Kulit Sawo', hex: '#E0AC69', tag: 'Alam' },
+  { name: 'Cokelat Kayu', hex: '#8D6E63', tag: 'Alam' },
+  { name: 'Cokelat Tua', hex: '#4E342E', tag: 'Alam' },
+  { name: 'Emas Mewah', hex: '#FFC107', tag: 'Alam' },
+  { name: 'Abu Robot', hex: '#9E9E9E', tag: 'Alam' },
+  { name: 'Hitam Pekat', hex: '#1E1E1E', tag: 'Alam' },
+  { name: 'Putih Bersih', hex: '#FFFFFF', tag: 'Alam' },
 ];
 
 export default function ColoringModule({ onAddStars }) {
   const canvasRef = useRef(null);
   const [selectedImage, setSelectedImage] = useState(COLORING_PAGES[0]);
-  const [activePaletteIdx, setActivePaletteIdx] = useState(0);
-  const [activeColor, setActiveColor] = useState(PALETTES[0].colors[0].hex);
-  const [activeColorName, setActiveColorName] = useState(PALETTES[0].colors[0].name);
+  const [activeColor, setActiveColor] = useState(SQUARE_COLORS[0].hex);
+  const [activeColorName, setActiveColorName] = useState(SQUARE_COLORS[0].name);
   const [tool, setTool] = useState('fill'); // 'fill', 'brush', 'eraser'
-  const [brushSize, setBrushSize] = useState(12);
+  const [brushSize, setBrushSize] = useState(14);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
 
@@ -400,22 +389,19 @@ export default function ColoringModule({ onAddStars }) {
     const startR = data[startPos];
     const startG = data[startPos + 1];
     const startB = data[startPos + 2];
-    const startA = data[startPos + 3];
 
     const fillRgb = hexToRgb(fillColorHex);
     if (!fillRgb) return;
 
     // Avoid filling black lines (stroke border protection)
-    if (startR < 40 && startG < 40 && startB < 40) {
-      return; // Clicked directly on outline
-    }
+    if (startR < 40 && startG < 40 && startB < 40) return;
 
     // If filling same color, return
     if (Math.abs(startR - fillRgb.r) < 5 && Math.abs(startG - fillRgb.g) < 5 && Math.abs(startB - fillRgb.b) < 5) {
       return;
     }
 
-    const tolerance = 70; // High tolerance for anti-aliased SVG shapes
+    const tolerance = 75; // Tolerance for anti-aliased SVG shapes
     
     const matchStartColor = (pos) => {
       const r = data[pos];
@@ -532,7 +518,7 @@ export default function ColoringModule({ onAddStars }) {
     kidAudio.playPop();
     setActiveColor(colorObj.hex);
     setActiveColorName(colorObj.name);
-    // If tool was eraser, switch back to fill or keep brush
+    // Maintain tool if brush/fill, switch back if eraser
     if (tool === 'eraser') {
       setTool('fill');
     }
@@ -556,52 +542,55 @@ export default function ColoringModule({ onAddStars }) {
   };
 
   return (
-    <div className="module-container animate-fade-in pb-20 max-w-6xl mx-auto px-2">
+    <div className="module-container animate-fade-in pb-20 max-w-7xl mx-auto px-2">
       
-      {/* Header Ceria Kid-Friendly */}
-      <div className="bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 p-5 rounded-3xl mb-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-4 border-4 border-white/40 relative overflow-hidden">
+      {/* Header Ceria Kid-Friendly dengan Icon & Badge Baru */}
+      <div className="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 p-5 rounded-3xl mb-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-4 border-4 border-white/50 relative overflow-hidden">
         <div className="flex items-center gap-4 z-10">
-          <div className="bg-white/30 backdrop-blur-md p-3.5 rounded-2xl border border-white/50 text-amber-300 shadow-inner animate-bounce-gentle">
-            <Palette size={40} className="drop-shadow" />
+          <div className="bg-amber-400 text-purple-950 p-4 rounded-2xl border-2 border-white shadow-lg animate-bounce-gentle flex items-center justify-center">
+            <Palette size={42} className="drop-shadow" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="bg-amber-300 text-purple-900 text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
-                Dunia Seni Anak 🎨
+              <span className="bg-amber-300 text-purple-950 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
+                <Sparkles size={14} /> Dunia Seni Anak 🎨
               </span>
             </div>
-            <h2 className="text-3xl font-black drop-shadow-md tracking-wide mt-0.5">Dunia Mewarnai Ajaib</h2>
-            <p className="text-white/90 text-sm font-medium">Pilih karakter favoritmu, warnai dengan ember ketuk atau kuas seru!</p>
+            <h2 className="text-3xl md:text-4xl font-black drop-shadow-md tracking-wide mt-1">Modul Mewarnai Ajaib</h2>
+            <p className="text-white/95 text-xs md:text-sm font-semibold">Pilih karakter, klik kotak warna di kanan, lalu gunakan ember atau kuas!</p>
           </div>
         </div>
         
         <button
-          onClick={() => kidAudio.speakFunFact('Ketuk gambar untuk memilih karakter, lalu pilih warna kesukaanmu untuk mewarnai!')}
-          className="z-10 bg-white/20 hover:bg-white/30 border border-white/40 text-white px-4 py-2.5 rounded-2xl font-bold flex items-center gap-2 transition-all active:scale-95 shadow-sm"
+          onClick={() => kidAudio.speakFunFact('Ketuk kotak warna di sebelah kanan untuk memilih warna, lalu sentuh gambar!')}
+          className="z-10 bg-white/20 hover:bg-white/30 border-2 border-white/60 text-white px-4 py-2.5 rounded-2xl font-bold flex items-center gap-2 transition-all active:scale-95 shadow-md text-sm"
         >
-          <Volume2 size={20} />
-          <span>Petunjuk Suara</span>
+          <Volume2 size={20} className="text-amber-300" />
+          <span>Suara Petunjuk</span>
         </button>
 
-        {/* Decorative background shapes */}
-        <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-xl pointer-events-none" />
+        {/* Decorative background glow */}
+        <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none" />
       </div>
 
+      {/* Main Layout: Left (Karakter) | Center (Canvas & Tools) | Right (Kotak Warna Grid) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* Panel Kiri (4 col): Gallery Karakter & Alat */}
-        <div className="lg:col-span-4 space-y-4">
+        {/* Panel Kiri (3 col): Galeri Karakter & Tombol Simpan */}
+        <div className="lg:col-span-3 space-y-4">
           
-          {/* Karakter Gallery */}
-          <div className="bg-white rounded-3xl p-4 shadow-md border-3 border-purple-100">
-            <h3 className="font-black text-slate-700 text-base mb-3 flex items-center justify-between">
-              <span>Pilih Gambar:</span>
-              <span className="text-xs bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full font-bold">
-                {COLORING_PAGES.length} Karakter
+          {/* Galeri Karakter */}
+          <div className="bg-white rounded-3xl p-4 shadow-lg border-4 border-purple-200">
+            <h3 className="font-black text-slate-800 text-base mb-3 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <ImageIcon size={20} className="text-purple-600" /> Pilih Gambar:
+              </span>
+              <span className="text-xs bg-purple-100 text-purple-800 px-2.5 py-0.5 rounded-full font-black">
+                {COLORING_PAGES.length} Gambar
               </span>
             </h3>
 
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-2.5">
               {COLORING_PAGES.map(img => (
                 <button
                   key={img.id}
@@ -611,127 +600,128 @@ export default function ColoringModule({ onAddStars }) {
                     setIsFinished(false);
                     kidAudio.speak(`Mari mewarnai ${img.title}!`);
                   }}
-                  className={`p-3 rounded-2xl border-3 flex flex-col items-center gap-1.5 transition-all text-left relative overflow-hidden ${
+                  className={`p-3 rounded-2xl border-3 flex items-center gap-3 transition-all text-left relative overflow-hidden ${
                     selectedImage.id === img.id
-                      ? 'border-purple-500 bg-purple-50 shadow-md scale-[1.02]'
-                      : 'border-slate-100 bg-slate-50/70 hover:border-purple-200 text-slate-600'
+                      ? 'border-purple-500 bg-purple-100/80 shadow-md scale-[1.02] font-black text-purple-950'
+                      : 'border-slate-100 bg-slate-50 hover:border-purple-300 text-slate-700 font-bold'
                   }`}
                 >
-                  <span className="text-3xl">{img.icon}</span>
-                  <span className="font-extrabold text-xs text-center text-slate-800 line-clamp-1">{img.title}</span>
+                  <span className="text-3xl bg-white p-2 rounded-xl shadow-xs border border-purple-100 flex-shrink-0">
+                    {img.icon}
+                  </span>
+                  <div className="overflow-hidden">
+                    <span className="text-xs text-purple-700 font-bold uppercase block tracking-wider">{img.category}</span>
+                    <span className="text-sm line-clamp-1">{img.title}</span>
+                  </div>
                   {selectedImage.id === img.id && (
-                    <span className="absolute top-1 right-1 w-3 h-3 bg-purple-500 rounded-full" />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 bg-purple-600 rounded-full animate-ping" />
                   )}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Selector Alat Mewarnai */}
-          <div className="bg-white rounded-3xl p-4 shadow-md border-3 border-orange-100">
-            <h3 className="font-black text-slate-700 text-base mb-3">Pilih Alat Mewarnai:</h3>
-            
-            <div className="grid grid-cols-3 gap-2">
-              {/* Ember Fill Button */}
-              <button
-                onClick={() => { kidAudio.playPop(); setTool('fill'); }}
-                className={`p-3 rounded-2xl border-3 flex flex-col items-center justify-center transition-all ${
-                  tool === 'fill'
-                    ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-md scale-105 font-black'
-                    : 'border-slate-100 bg-slate-50 text-slate-600 hover:border-blue-200 font-bold'
-                }`}
-              >
-                <PaintBucket size={26} className={tool === 'fill' ? 'animate-bounce-gentle' : ''} />
-                <span className="text-xs mt-1">Ember Fill</span>
-              </button>
+          {/* Tombol Aksi Tambahan (Reset & Simpan) */}
+          <div className="bg-white rounded-3xl p-4 shadow-lg border-4 border-amber-200 flex flex-col gap-2.5">
+            <button 
+              onClick={downloadImage}
+              className="w-full bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-500 hover:to-green-600 text-white p-3.5 rounded-2xl font-black flex items-center justify-center gap-2 shadow-md shadow-emerald-200 active:scale-95 transition-all text-sm"
+            >
+              <Download size={22} className="animate-bounce-gentle" /> Simpan Hasil Gambar
+            </button>
 
-              {/* Kuas Drawing Button */}
-              <button
-                onClick={() => { kidAudio.playPop(); setTool('brush'); }}
-                className={`p-3 rounded-2xl border-3 flex flex-col items-center justify-center transition-all ${
-                  tool === 'brush'
-                    ? 'border-amber-500 bg-amber-50 text-amber-800 shadow-md scale-105 font-black'
-                    : 'border-slate-100 bg-slate-50 text-slate-600 hover:border-amber-200 font-bold'
-                }`}
-              >
-                <Pen size={26} className={tool === 'brush' ? 'animate-bounce-gentle' : ''} />
-                <span className="text-xs mt-1">Kuas Free</span>
-              </button>
-
-              {/* Penghapus Button */}
-              <button
-                onClick={() => { kidAudio.playPop(); setTool('eraser'); }}
-                className={`p-3 rounded-2xl border-3 flex flex-col items-center justify-center transition-all ${
-                  tool === 'eraser'
-                    ? 'border-pink-500 bg-pink-50 text-pink-700 shadow-md scale-105 font-black'
-                    : 'border-slate-100 bg-slate-50 text-slate-600 hover:border-pink-200 font-bold'
-                }`}
-              >
-                <Eraser size={26} className={tool === 'eraser' ? 'animate-bounce-gentle' : ''} />
-                <span className="text-xs mt-1">Penghapus</span>
-              </button>
-            </div>
-
-            {/* Slider Ukuran Kuas jika Kuas/Penghapus terpilih */}
-            {tool !== 'fill' && (
-              <div className="mt-4 p-3 bg-slate-50 rounded-2xl border border-slate-100">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold text-slate-600">Ukuran Goresan:</span>
-                  <div 
-                    className="rounded-full bg-slate-800" 
-                    style={{ width: Math.max(6, brushSize/2), height: Math.max(6, brushSize/2) }}
-                  />
-                </div>
-                <input 
-                  type="range" min="4" max="40" value={brushSize} 
-                  onChange={(e) => setBrushSize(parseInt(e.target.value))}
-                  className="w-full accent-amber-500 cursor-pointer h-2 bg-slate-200 rounded-lg"
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Tombol Aksi Tambahan */}
-          <div className="flex gap-2">
             <button 
               onClick={() => {
                 kidAudio.playPop();
                 loadImageToCanvas(selectedImage);
                 setIsFinished(false);
               }}
-              className="flex-1 bg-white hover:bg-slate-50 text-slate-700 border-2 border-slate-200 p-3 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-sm active:scale-95 transition-all text-xs md:text-sm"
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 border-2 border-slate-200 p-3 rounded-2xl font-extrabold flex items-center justify-center gap-2 active:scale-95 transition-all text-xs"
             >
-              <RotateCcw size={18} className="text-slate-500" /> Reset Canvas
-            </button>
-            
-            <button 
-              onClick={downloadImage}
-              className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white p-3 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-md shadow-emerald-200 active:scale-95 transition-all text-xs md:text-sm"
-            >
-              <Download size={18} /> Simpan Hasil
+              <RotateCcw size={18} className="text-slate-500" /> Ulangi Gambar Ini
             </button>
           </div>
 
         </div>
 
-        {/* Panel Tengah Canvas (5 col) */}
+        {/* Panel Tengah (5 col): Canvas & Peralatan Baru */}
         <div className="lg:col-span-5 flex flex-col items-center">
           
-          {/* Frame Gambar bergaya Kayu/Candy */}
-          <div className="relative w-full max-w-[440px] bg-amber-100 p-4 rounded-[2.5rem] shadow-2xl border-4 border-amber-300/80">
+          {/* Selector Alat Mewarnai (Bar Atas Canvas) */}
+          <div className="w-full bg-white rounded-3xl p-3 shadow-lg border-4 border-blue-200 mb-4">
+            <div className="grid grid-cols-3 gap-2">
+              
+              {/* Ember Fill Button (Attractive 3D Style) */}
+              <button
+                onClick={() => { kidAudio.playPop(); setTool('fill'); }}
+                className={`p-3 rounded-2xl border-3 flex flex-col items-center justify-center transition-all ${
+                  tool === 'fill'
+                    ? 'border-blue-600 bg-gradient-to-b from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-300/60 scale-105 font-black'
+                    : 'border-slate-100 bg-slate-50 hover:bg-blue-50 text-slate-700 font-extrabold'
+                }`}
+              >
+                <PaintBucket size={28} className={tool === 'fill' ? 'animate-bounce-gentle text-amber-300' : 'text-blue-500'} />
+                <span className="text-xs mt-1">Ember Ketuk</span>
+              </button>
+
+              {/* Kuas Drawing Button (Attractive 3D Style) */}
+              <button
+                onClick={() => { kidAudio.playPop(); setTool('brush'); }}
+                className={`p-3 rounded-2xl border-3 flex flex-col items-center justify-center transition-all ${
+                  tool === 'brush'
+                    ? 'border-amber-500 bg-gradient-to-b from-amber-400 to-orange-500 text-white shadow-lg shadow-orange-300/60 scale-105 font-black'
+                    : 'border-slate-100 bg-slate-50 hover:bg-amber-50 text-slate-700 font-extrabold'
+                }`}
+              >
+                <Brush size={28} className={tool === 'brush' ? 'animate-bounce-gentle text-white' : 'text-amber-500'} />
+                <span className="text-xs mt-1">Kuas Bebas</span>
+              </button>
+
+              {/* Penghapus Button (Attractive 3D Style) */}
+              <button
+                onClick={() => { kidAudio.playPop(); setTool('eraser'); }}
+                className={`p-3 rounded-2xl border-3 flex flex-col items-center justify-center transition-all ${
+                  tool === 'eraser'
+                    ? 'border-pink-500 bg-gradient-to-b from-pink-400 to-rose-500 text-white shadow-lg shadow-pink-300/60 scale-105 font-black'
+                    : 'border-slate-100 bg-slate-50 hover:bg-pink-50 text-slate-700 font-extrabold'
+                }`}
+              >
+                <Eraser size={28} className={tool === 'eraser' ? 'animate-bounce-gentle text-white' : 'text-pink-500'} />
+                <span className="text-xs mt-1">Penghapus</span>
+              </button>
+            </div>
+
+            {/* Slider Ukuran Kuas */}
+            {tool !== 'fill' && (
+              <div className="mt-3 pt-3 border-t border-slate-100 px-2 flex items-center gap-3">
+                <span className="text-xs font-black text-slate-600 flex-shrink-0">Ukuran:</span>
+                <input 
+                  type="range" min="4" max="40" value={brushSize} 
+                  onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                  className="w-full accent-amber-500 cursor-pointer h-2 bg-slate-200 rounded-lg"
+                />
+                <div 
+                  className="rounded-full bg-slate-800 flex-shrink-0 border border-white shadow-xs" 
+                  style={{ width: Math.max(8, brushSize/1.8), height: Math.max(8, brushSize/1.8) }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Canvas Main Frame */}
+          <div className="relative w-full bg-amber-100 p-4 rounded-[2.5rem] shadow-2xl border-4 border-amber-300/90">
             
-            {/* Header info canvas */}
-            <div className="flex items-center justify-between mb-2.5 px-2">
+            <div className="flex items-center justify-between mb-2 px-2">
               <span className="text-xs font-black text-amber-900 flex items-center gap-1">
-                <Sparkles size={14} className="text-amber-500" />
+                <Sparkles size={16} className="text-amber-500" />
                 {selectedImage.title}
               </span>
-              <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">
-                Mode: {tool === 'fill' ? ' Ketuk Warna (Fill)' : tool === 'brush' ? ' Kuas Bebas' : ' Penghapus'}
+              <span className="text-[10px] font-black bg-amber-200 text-amber-900 px-2.5 py-0.5 rounded-full uppercase">
+                {tool === 'fill' ? ' Mode Ketuk Warna' : tool === 'brush' ? ' Mode Kuas' : ' Mode Penghapus'}
               </span>
             </div>
 
-            <div className="bg-white rounded-3xl overflow-hidden shadow-inner border-2 border-amber-200/60 relative">
+            <div className="bg-white rounded-3xl overflow-hidden shadow-inner border-2 border-amber-200 relative">
               <canvas
                 ref={canvasRef}
                 width={400}
@@ -744,16 +734,16 @@ export default function ColoringModule({ onAddStars }) {
                 onPointerCancel={handlePointerUp}
               />
 
-              {/* Selebrasi Bintang jika Selesai */}
+              {/* Celebration Overlay */}
               {isFinished && (
-                <div className="absolute inset-0 bg-white/40 backdrop-blur-xs flex flex-col items-center justify-center p-4 text-center z-10 animate-fade-in">
+                <div className="absolute inset-0 bg-white/50 backdrop-blur-xs flex flex-col items-center justify-center p-4 text-center z-10 animate-fade-in">
                   <div className="bg-white p-6 rounded-3xl shadow-2xl border-4 border-amber-400 max-w-xs flex flex-col items-center animate-bounce-gentle">
-                    <span className="text-5xl mb-2">🌟</span>
-                    <h4 className="font-black text-xl text-amber-500">Karya Luar Biasa!</h4>
-                    <p className="text-xs text-slate-600 font-medium my-2">Kamu berhasil mendapatkan +20 Bintang Seni!</p>
+                    <span className="text-6xl mb-2">🌟</span>
+                    <h4 className="font-black text-2xl text-amber-500">Hebat Sekali!</h4>
+                    <p className="text-xs text-slate-600 font-bold my-2">Kamu dapat +20 Bintang Mewarnai!</p>
                     <button
                       onClick={() => setIsFinished(false)}
-                      className="mt-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white px-5 py-2 rounded-full font-bold text-xs shadow-md"
+                      className="mt-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white px-6 py-2.5 rounded-full font-black text-xs shadow-md"
                     >
                       Lanjut Mewarnai
                     </button>
@@ -762,19 +752,19 @@ export default function ColoringModule({ onAddStars }) {
               )}
             </div>
 
-            {/* Indicator Warna Aktif di Canvas */}
-            <div className="mt-3 bg-white/80 backdrop-blur-sm rounded-full py-1.5 px-4 flex items-center justify-between border border-amber-200 shadow-sm">
-              <div className="flex items-center gap-2">
+            {/* Indicator Warna Aktif */}
+            <div className="mt-3 bg-white rounded-full py-2 px-4 flex items-center justify-between border-2 border-amber-200 shadow-sm">
+              <div className="flex items-center gap-2.5">
                 <div 
-                  className="w-5 h-5 rounded-full shadow-inner border border-black/20"
+                  className="w-6 h-6 rounded-lg shadow-inner border-2 border-slate-400"
                   style={{ backgroundColor: tool === 'eraser' ? '#FFFFFF' : activeColor }}
                 />
-                <span className="text-xs font-black text-slate-700">
+                <span className="text-xs font-black text-slate-800">
                   {tool === 'eraser' ? 'Penghapus Aktif' : activeColorName}
                 </span>
               </div>
-              <span className="text-[10px] text-slate-500 font-bold">
-                {tool === 'fill' ? 'Sentuh area gambar' : 'Goreskan di kertas'}
+              <span className="text-[10px] text-amber-800 font-black">
+                {tool === 'fill' ? 'Sentuh bagian gambar!' : 'Goreskan kuas!'}
               </span>
             </div>
 
@@ -784,76 +774,77 @@ export default function ColoringModule({ onAddStars }) {
           {!isFinished && (
             <button 
               onClick={handleFinish}
-              className="mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-400 via-teal-500 to-green-500 text-white px-8 py-3.5 rounded-2xl font-black text-base shadow-lg shadow-emerald-200 hover:scale-105 active:scale-95 transition-all w-full max-w-[440px]"
+              className="mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-400 via-teal-500 to-green-500 text-white px-8 py-3.5 rounded-2xl font-black text-base shadow-lg shadow-emerald-200 hover:scale-105 active:scale-95 transition-all w-full"
             >
-              <CheckCircle size={22} /> Selesai Mewarnai! (+20 🌟)
+              <CheckCircle size={24} /> Selesai Mewarnai! (+20 🌟)
             </button>
           )}
 
         </div>
 
-        {/* Panel Kanan (3 col): Palet Warna Kategori */}
-        <div className="lg:col-span-3">
-          <div className="bg-white rounded-3xl p-4 shadow-md border-3 border-pink-100">
-            <h3 className="font-black text-slate-700 text-base mb-3 flex items-center gap-2">
-              <Palette size={20} className="text-pink-500" /> Palet Warna:
-            </h3>
-
-            {/* Tab Kategori Warna */}
-            <div className="flex flex-col gap-1.5 mb-4">
-              {PALETTES.map((pal, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    kidAudio.playPop();
-                    setActivePaletteIdx(idx);
-                  }}
-                  className={`text-xs font-black px-3 py-2 rounded-xl text-left transition-all flex items-center justify-between border ${
-                    activePaletteIdx === idx
-                      ? 'bg-pink-500 text-white border-pink-500 shadow-sm'
-                      : 'bg-slate-50 text-slate-600 border-slate-100 hover:bg-pink-50'
-                  }`}
-                >
-                  <span>{pal.name}</span>
-                  {activePaletteIdx === idx && <span className="text-xs">✓</span>}
-                </button>
-              ))}
+        {/* Panel Kanan (4 col): PALET KOTAK WARNA (SQUARE COLOR TILES GRID) */}
+        <div className="lg:col-span-4">
+          <div className="bg-white rounded-3xl p-4.5 shadow-xl border-4 border-pink-200">
+            
+            {/* Header Kotak Warna */}
+            <div className="flex items-center justify-between mb-3 pb-2 border-b-2 border-pink-100">
+              <h3 className="font-black text-slate-800 text-base flex items-center gap-2">
+                <Palette size={22} className="text-pink-500" /> Kotak Warna:
+              </h3>
+              <span className="text-xs font-black bg-pink-100 text-pink-800 px-2.5 py-0.5 rounded-full">
+                {SQUARE_COLORS.length} Warna
+              </span>
             </div>
 
-            {/* Grid Warna Swatches */}
-            <div className="grid grid-cols-4 gap-2.5 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-              {PALETTES[activePaletteIdx].colors.map((colorObj, idx) => {
+            <p className="text-xs text-slate-500 font-bold mb-3">
+              Ketuk salah satu **kotak warna** di bawah ini:
+            </p>
+
+            {/* Grid Kotak Warna (Chunky Square Tiles) */}
+            <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-4 gap-2.5 max-h-[480px] overflow-y-auto pr-1 p-1 bg-slate-50 rounded-2xl border-2 border-slate-100">
+              {SQUARE_COLORS.map((colorObj, idx) => {
                 const isSelected = activeColor === colorObj.hex && tool !== 'eraser';
+                const isLight = colorObj.hex === '#FFFFFF' || colorObj.hex === '#FFF9C4' || colorObj.hex === '#FFDFC4' || colorObj.hex === '#FFF9C4';
+
                 return (
                   <button
                     key={idx}
                     onClick={() => handleColorSelect(colorObj)}
-                    className={`w-full aspect-square rounded-full border-2 transition-all flex items-center justify-center relative shadow-sm ${
+                    className={`w-full aspect-square rounded-2xl transition-all flex flex-col items-center justify-center relative border-3 shadow-md ${
                       isSelected 
-                        ? 'scale-110 border-slate-900 shadow-md z-10 ring-2 ring-pink-400' 
-                        : 'border-white hover:scale-105'
+                        ? 'scale-105 border-slate-900 shadow-xl ring-4 ring-pink-400 z-10' 
+                        : 'border-slate-200/80 hover:scale-105 hover:border-pink-300'
                     }`}
                     style={{ backgroundColor: colorObj.hex }}
                     title={colorObj.name}
                   >
                     {isSelected && (
-                      <span className={`text-xs font-black ${colorObj.hex === '#FFFFFF' || colorObj.hex === '#FFF9C4' || colorObj.hex === '#FFDFC4' ? 'text-slate-900' : 'text-white'}`}>
-                        ✓
-                      </span>
+                      <div className={`p-1 rounded-full ${isLight ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'} shadow-md animate-bounce-gentle`}>
+                        <CheckCircle size={16} strokeWidth={3} />
+                      </div>
                     )}
+
+                    {/* Badge Tag tipis di sudut bawah */}
+                    <span 
+                      className={`absolute bottom-1 text-[8px] font-black tracking-tighter px-1 rounded ${
+                        isLight ? 'text-slate-800 bg-black/10' : 'text-white bg-black/30'
+                      }`}
+                    >
+                      {colorObj.name.split(' ')[0]}
+                    </span>
                   </button>
                 );
               })}
             </div>
 
-            {/* Info Warna Terpilih */}
-            <div className="mt-4 p-3 bg-pink-50/60 rounded-2xl border border-pink-100 flex items-center gap-3">
+            {/* Papan Info Warna Aktif */}
+            <div className="mt-4 p-3.5 bg-pink-50 rounded-2xl border-2 border-pink-200 flex items-center gap-3">
               <div 
-                className="w-10 h-10 rounded-full shadow-md border-2 border-white flex-shrink-0"
+                className="w-12 h-12 rounded-xl shadow-md border-3 border-white flex-shrink-0"
                 style={{ backgroundColor: tool === 'eraser' ? '#FFFFFF' : activeColor }}
               />
               <div className="overflow-hidden">
-                <span className="text-[10px] text-pink-700 font-bold uppercase block">Warna Pilihan:</span>
+                <span className="text-[10px] text-pink-700 font-extrabold uppercase block tracking-wider">Terpilih:</span>
                 <span className="font-black text-slate-800 text-sm truncate block">
                   {tool === 'eraser' ? 'Penghapus Putih' : activeColorName}
                 </span>
