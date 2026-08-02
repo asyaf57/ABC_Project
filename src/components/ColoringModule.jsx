@@ -567,13 +567,13 @@ export default function ColoringModule({ onAddStars }) {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="flex flex-col lg:flex-row justify-center items-start gap-6 max-w-5xl mx-auto w-full">
         
-        {/* PANEL KIRI / TENGAH (8 col): Alat & Kanvas */}
-        <div className="lg:col-span-9 flex flex-col items-center w-full">
+        {/* PANEL KIRI / TENGAH: Alat & Kanvas */}
+        <div className="flex-1 flex flex-col items-center w-full max-w-[600px]">
           
           {/* Selector Alat Mewarnai */}
-          <div className="w-full max-w-[600px] bg-white rounded-3xl p-3 shadow-md border-4 border-slate-100 mb-4">
+          <div className="w-full bg-white rounded-3xl p-3 shadow-md border-4 border-slate-100 mb-4">
             <div className="grid grid-cols-3 gap-3">
               <button
                 onClick={() => { kidAudio.playPop(); setTool('fill'); }}
@@ -624,7 +624,7 @@ export default function ColoringModule({ onAddStars }) {
           </div>
 
           {/* Canvas Main Frame */}
-          <div className="relative w-full max-w-[600px] bg-white p-4 rounded-[2.5rem] shadow-xl border-4 border-slate-200">
+          <div className="relative w-full bg-white p-4 rounded-[2.5rem] shadow-xl border-4 border-slate-200">
             <div className="bg-white rounded-3xl overflow-hidden shadow-inner border-2 border-slate-100 relative">
               <canvas
                 ref={canvasRef}
@@ -658,7 +658,7 @@ export default function ColoringModule({ onAddStars }) {
           </div>
 
           {/* Tombol Aksi Bawah Kanvas (Simpan & Ulangi) */}
-          <div className="w-full max-w-[600px] mt-4 flex gap-3">
+          <div className="w-full mt-4 flex gap-3">
             <button 
               onClick={() => {
                 kidAudio.playPop();
@@ -680,7 +680,7 @@ export default function ColoringModule({ onAddStars }) {
           {!isFinished && (
             <button 
               onClick={handleFinish}
-              className="w-full max-w-[600px] mt-3 flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-500 text-white p-4 rounded-2xl font-black text-lg shadow-md shadow-amber-200 active:scale-95 transition-all"
+              className="w-full mt-3 flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-500 text-white p-4 rounded-2xl font-black text-lg shadow-md shadow-amber-200 active:scale-95 transition-all"
             >
               Selesai Mewarnai! (+20 🌟)
             </button>
@@ -688,9 +688,9 @@ export default function ColoringModule({ onAddStars }) {
 
         </div>
 
-        {/* PANEL KANAN (3 col): PALET KOTAK WARNA VERTIKAL */}
-        <div className="lg:col-span-3">
-          <div className="bg-white rounded-3xl p-4 shadow-lg border-4 border-slate-100 flex flex-col h-full max-h-[800px]">
+        {/* PANEL KANAN: PALET KOTAK WARNA VERTIKAL */}
+        <div className="w-full lg:w-[280px] flex-shrink-0">
+          <div className="bg-white rounded-3xl p-4 shadow-lg border-4 border-slate-100 flex flex-col h-full sticky top-4">
             
             <div className="text-center mb-3 pb-2 border-b-2 border-slate-100">
               <h3 className="font-black text-slate-800 text-lg">Warna</h3>
@@ -698,7 +698,7 @@ export default function ColoringModule({ onAddStars }) {
             </div>
 
             {/* Grid Kotak Warna (Vertikal, Tegak lurus ke bawah) */}
-            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-2 gap-3 overflow-y-auto pr-2 pb-2">
+            <div className="grid grid-cols-4 lg:grid-cols-2 gap-3 overflow-y-auto pr-2 pb-2">
               {SQUARE_COLORS.map((colorObj, idx) => {
                 const isSelected = activeColor === colorObj.hex && tool !== 'eraser';
                 const isLight = colorObj.hex === '#FFFFFF' || colorObj.hex === '#FFF9C4' || colorObj.hex === '#FFDFC4';
