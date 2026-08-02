@@ -525,6 +525,7 @@ const COLORS = [
 
 export default function ColoringModule({ onAddStars }) {
   const canvasRef = useRef(null);
+  const isFillingRef = useRef(false);
   const [selectedPage, setSelectedPage] = useState(null);
   const [activeColor, setActiveColor] = useState(COLORS[0]);
   const [tool, setTool] = useState('fill');
@@ -607,12 +608,21 @@ export default function ColoringModule({ onAddStars }) {
     const {x, y} = getXY(e);
     const ctx = canvasRef.current.getContext('2d', { willReadFrequently: true });
     if (tool === 'fill') {
+      // Guard: ignore tap if a fill is still running
+      if (isFillingRef.current) return;
+      isFillingRef.current = true;
       kidAudio.playPop();
-      // Run flood fill directly — no setState, no re-render, no overhead
-      // Change cursor via DOM ref to give visual feedback without React re-render
+      // Disable pointer events so double-tap doesn't queue another fill
+      canvasRef.current.style.pointerEvents = 'none';
       canvasRef.current.style.cursor = 'wait';
-      floodFill(ctx, x, y, activeColor);
-      canvasRef.current.style.cursor = 'crosshair';
+      // requestAnimationFrame: lets browser paint the cursor change first,
+      // then runs the fill — avoids UI freeze without React re-render
+      requestAnimationFrame(() => {
+        floodFill(ctx, x, y, activeColor);
+        canvasRef.current.style.cursor = 'crosshair';
+        canvasRef.current.style.pointerEvents = 'auto';
+        isFillingRef.current = false;
+      });
     } else {
       setIsDrawing(true);
       ctx.beginPath();
