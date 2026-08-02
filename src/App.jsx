@@ -187,6 +187,9 @@ export default function App() {
             {activeModule === 'math' && (
               <KidModuleBoundary key="math-module">
                 <MathModule onAddStars={handleAddStars} />
+              </KidModuleBoundary>
+            )}
+
             {activeModule === 'coding' && (
               <KidModuleBoundary key="coding-module">
                 <CodingModule onAddStars={handleAddStars} />
