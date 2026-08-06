@@ -191,16 +191,16 @@ export default function FairyTaleModule({ onAddStars }) {
 
         {/* Image Panel */}
         <div className="relative w-full flex-1 min-h-[40vh] bg-black/40 flex items-center justify-center overflow-hidden">
-          {selectedStory.scenes.map((scene, idx) => (
-            <img
-              key={scene.id}
-              src={scene.image}
-              alt={`Scene ${idx + 1}`}
-              className={`absolute inset-0 w-full h-full object-contain p-4 transition-opacity duration-700 ease-in-out ${idx === currentSceneIndex ? 'opacity-100 z-10 scale-100' : 'opacity-0 z-0 scale-105'}`}
-            />
-          ))}
+          {/* Only render current scene image – key forces re-mount for fresh fade-in */}
+          <img
+            key={currentScene.id}
+            src={currentScene.image}
+            alt={`Scene ${currentSceneIndex + 1}`}
+            style={{ animation: 'sceneFadeIn 0.6s ease forwards' }}
+            className="w-full h-full object-contain p-4"
+          />
           
-          {/* Navigation Overlay Controls (Hidden on small screens, visible on large) */}
+          {/* Navigation Overlay Controls */}
           <div className="absolute inset-y-0 left-0 w-1/4 flex items-center justify-start p-4 z-20">
             {currentSceneIndex > 0 && (
               <button 
@@ -221,7 +221,13 @@ export default function FairyTaleModule({ onAddStars }) {
               </button>
             )}
           </div>
+
+          {/* Scene number badge */}
+          <div className="absolute top-3 left-3 z-20 bg-black/50 text-white text-sm font-bold px-3 py-1 rounded-full backdrop-blur-sm">
+            Scene {currentSceneIndex + 1} / {selectedStory.scenes.length}
+          </div>
         </div>
+
 
         {/* Text and Controls Panel */}
         <div className="bg-white p-6 md:p-8 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.1)] relative z-30">
