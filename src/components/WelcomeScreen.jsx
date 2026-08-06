@@ -342,7 +342,6 @@ export default function WelcomeScreen({ onCompleteRegistration, onStartTutorialD
                     <span className="avatar-name">{customPhotoUrl ? 'Foto Terpasang ✅' : '📷 Unggah Foto Sendiri'}</span>
                   </label>
                 </div>
-              </div>
               )}
 
 
