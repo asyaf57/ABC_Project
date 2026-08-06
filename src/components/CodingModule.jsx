@@ -4,7 +4,7 @@ import {
   ArrowLeft, ArrowUp, ArrowDown, Award, Play, Box, ShoppingBag, Grid, 
   Palette, Compass, Check, HelpCircle, Trophy, Move 
 } from 'lucide-react';
-import { kidAudio } from '../utils/audio';
+import { kidAudio } from '../utils/audio';import PathfindingGame from './PathfindingGame';
 
 const GAME_TABS = [
   { id: 1, name: 'Balok Ukuran', emoji: '🧱', bg: 'linear-gradient(135deg, #fef08a, #fde047)', desc: 'Pemilahan Ukuran' },
@@ -39,11 +39,7 @@ export default function CodingModule({ onAddStars }) {
   const [selectedCatItem, setSelectedCatItem] = useState(null);
 
   // GAME 3: PATHFINDING LOGIC STATE
-  const [rabbitPos, setRabbitPos] = useState({ r: 0, c: 0 });
-  const targetPos = { r: 2, c: 3 };
-  const [commandSequence, setCommandSequence] = useState([]);
-  const [isExecuting, setIsExecuting] = useState(false);
-  const [game3Success, setGame3Success] = useState(false);
+  // Dipindahkan ke PathfindingGame.jsx
 
   // GAME 4: PUZZLE STATE
   const [puzzleTiles, setPuzzleTiles] = useState([
@@ -76,7 +72,7 @@ export default function CodingModule({ onAddStars }) {
     } else if (gameId === 2) {
       kidAudio.speak('Game 2: Sortir benda ke keranjang buah, keranjang mainan, atau keranjang hewan!');
     } else if (gameId === 3) {
-      kidAudio.speak('Game 3: Susun perintah panah algoritma untuk menuntun Kelinci menuju Wortel!');
+      kidAudio.speak('Ayo Antar Sahabat Kita menemukan makanannya!');
     } else if (gameId === 4) {
       kidAudio.speak('Game 4: Tukar posisi kepingan puzzle sampai gambar tersusun dengan sempurna!');
     } else if (gameId === 5) {
@@ -172,52 +168,7 @@ export default function CodingModule({ onAddStars }) {
   };
 
   // GAME 3 LOGIC: Pathfinding Code
-  const addCommand = (dir) => {
-    if (isExecuting) return;
-    kidAudio.playPop();
-    setCommandSequence(prev => [...prev, dir]);
-  };
-
-  const executeCode = async () => {
-    if (commandSequence.length === 0 || isExecuting) return;
-    setIsExecuting(true);
-    let curr = { r: 0, c: 0 };
-    setRabbitPos(curr);
-
-    kidAudio.speak('Menjalankan algoritma kode...');
-
-    for (let i = 0; i < commandSequence.length; i++) {
-      await new Promise(res => setTimeout(res, 600));
-      const cmd = commandSequence[i];
-      if (cmd === 'RIGHT' && curr.c < 3) curr = { ...curr, c: curr.c + 1 };
-      else if (cmd === 'LEFT' && curr.c > 0) curr = { ...curr, c: curr.c - 1 };
-      else if (cmd === 'DOWN' && curr.r < 2) curr = { ...curr, r: curr.r + 1 };
-      else if (cmd === 'UP' && curr.r > 0) curr = { ...curr, r: curr.r - 1 };
-      
-      setRabbitPos({ ...curr });
-      kidAudio.playPop();
-    }
-
-    setIsExecuting(false);
-
-    if (curr.r === targetPos.r && curr.c === targetPos.c) {
-      kidAudio.playSuccess();
-      setGame3Success(true);
-      setScore(prev => prev + 25);
-      if (typeof onAddStars === 'function') onAddStars(4);
-      kidAudio.speak('Hore! Kelinci berhasil sampai ke Wortel mengikuti perintah kodemu! Kamu programmer hebat!');
-    } else {
-      kidAudio.playWrong();
-      kidAudio.speak('Kelinci belum sampai ke Wortel. Ayo perbaiki urutan perintah kodemu!');
-    }
-  };
-
-  const resetGame3 = () => {
-    kidAudio.playPop();
-    setRabbitPos({ r: 0, c: 0 });
-    setCommandSequence([]);
-    setGame3Success(false);
-  };
+  // Dipindahkan ke PathfindingGame.jsx
 
   // GAME 4 LOGIC: Picture Puzzle
   const handleTileClick = (clickedTile) => {
@@ -522,73 +473,12 @@ export default function CodingModule({ onAddStars }) {
         </div>
       )}
 
-      {/* GAME 3: ALGORITMA PATHFINDING (KELINCI KE WORTEL) */}
+      {/* GAME 3: PATHFINDING (ALGORITMA) */}
       {activeGameId === 3 && (
-        <div className="coding-content-card glass-panel animate-scale-up">
-          <div className="game-instruction-bar">
-            <h3>✏️ Game 3: Menghubungkan Garis Algoritma Pathfinding</h3>
-            <p>Susun urutan perintah panah untuk menuntun Kelinci 🐰 menuju Wortel 🥕!</p>
-          </div>
-
-          <div className="pathfinding-layout">
-            {/* Grid Map 3x4 */}
-            <div className="map-grid">
-              {Array.from({ length: 3 }).map((_, r) => (
-                <div key={r} className="map-row">
-                  {Array.from({ length: 4 }).map((_, c) => {
-                    const isRabbit = rabbitPos.r === r && rabbitPos.c === c;
-                    const isTarget = targetPos.r === r && targetPos.c === c;
-
-                    return (
-                      <div key={c} className="map-cell">
-                        {isRabbit && <span className="cell-entity animate-bounce-gentle">🐰</span>}
-                        {isTarget && !isRabbit && <span className="cell-entity">🥕</span>}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-
-            {/* Code Control Panel */}
-            <div className="code-control-panel">
-              <h4>Perintah Algoritma (Blok Kode):</h4>
-              <div className="arrow-buttons-row">
-                <button className="btn-arrow" onClick={() => addCommand('UP')}><ArrowUp size={22} /></button>
-                <button className="btn-arrow" onClick={() => addCommand('DOWN')}><ArrowDown size={22} /></button>
-                <button className="btn-arrow" onClick={() => addCommand('LEFT')}><ArrowLeft size={22} /></button>
-                <button className="btn-arrow" onClick={() => addCommand('RIGHT')}><ArrowRight size={22} /></button>
-              </div>
-
-              {/* Command Sequence Track */}
-              <div className="command-track">
-                {commandSequence.length === 0 ? (
-                  <span className="track-placeholder">Tekan tombol panah di atas untuk menambah perintah...</span>
-                ) : (
-                  commandSequence.map((cmd, idx) => (
-                    <span key={idx} className="cmd-chip">
-                      {cmd === 'UP' && '⬆️'}
-                      {cmd === 'DOWN' && '⬇️'}
-                      {cmd === 'LEFT' && '⬅️'}
-                      {cmd === 'RIGHT' && '➡️'}
-                    </span>
-                  ))
-                )}
-              </div>
-
-              <div className="code-action-row">
-                <button className="btn-kid btn-primary" onClick={executeCode} disabled={isExecuting}>
-                  <Play size={18} />
-                  <span>Jalankan Kode 🚀</span>
-                </button>
-                <button className="btn-kid btn-secondary" onClick={resetGame3}>
-                  <RefreshCw size={18} />
-                  <span>Reset Kode</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <PathfindingGame 
+          onAddStars={onAddStars} 
+          setScore={setScore} 
+        />
       )}
 
       {/* GAME 4: MENYUSUN PUZZLE GAMBAR */}

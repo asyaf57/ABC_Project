@@ -47,6 +47,14 @@ export default function HomeScreen({ account, stars, onSelectModule, onOpenTutor
       color: 'card-rose',
       badge: lang === 'id' ? 'Aktif' : 'Active',
       available: true
+    },
+    {
+      id: 'dongeng',
+      title: lang === 'id' ? 'Cerita Dongeng' : 'Fairy Tales',
+      image: '/fairytales/cover.jpg',
+      color: 'card-yellow',
+      badge: lang === 'id' ? 'Aktif' : 'Active',
+      available: true
     }
   ];
 
@@ -56,14 +64,6 @@ export default function HomeScreen({ account, stars, onSelectModule, onOpenTutor
       title: lang === 'id' ? 'Mini Games Ceria' : 'Fun Mini Games',
       image: '/minigames_kids.jpg',
       color: 'card-pink',
-      badge: lang === 'id' ? 'Segera' : 'Soon',
-      available: false
-    },
-    {
-      id: 'dongeng',
-      title: lang === 'id' ? 'Cerita Dongeng' : 'Fairy Tales',
-      image: '/dongeng_kids.jpg',
-      color: 'card-yellow',
       badge: lang === 'id' ? 'Segera' : 'Soon',
       available: false
     },

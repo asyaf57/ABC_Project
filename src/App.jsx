@@ -7,6 +7,7 @@ import MathModule from './components/MathModule';
 import CodingModule from './components/CodingModule';
 import VoiceRoomPreview from './components/VoiceRoomPreview';
 import ColoringModule from './components/ColoringModule';
+import FairyTaleModule from './components/FairyTaleModule';
 import TutorialModal from './components/TutorialModal';
 import ParentModal from './components/ParentModal';
 import BottomNav from './components/BottomNav';
@@ -251,6 +252,12 @@ export default function App() {
             {activeModule === 'coloring' && (
               <KidModuleBoundary key="coloring-module">
                 <ColoringModule onAddStars={handleAddStars} />
+              </KidModuleBoundary>
+            )}
+
+            {activeModule === 'dongeng' && (
+              <KidModuleBoundary key="dongeng-module">
+                <FairyTaleModule onAddStars={handleAddStars} />
               </KidModuleBoundary>
             )}
           </>
