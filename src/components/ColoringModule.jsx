@@ -525,6 +525,7 @@ const COLORS = [
 
 export default function ColoringModule({ onAddStars }) {
   const canvasRef = useRef(null);
+  const workerRef = useRef(null);
   const isFillingRef = useRef(false);
   const [selectedPage, setSelectedPage] = useState(null);
   const [activeColor, setActiveColor] = useState(COLORS[0]);
@@ -533,6 +534,29 @@ export default function ColoringModule({ onAddStars }) {
   const [isDrawing, setIsDrawing] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [celebrationCount, setCelebrationCount] = useState(0);
+
+  // Initialize Web Worker for flood fill
+  useEffect(() => {
+    workerRef.current = new Worker(new URL('../workers/fillWorker.js', import.meta.url), { type: 'module' });
+    
+    workerRef.current.onmessage = (e) => {
+      if (e.data.imgData && canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        ctx.putImageData(e.data.imgData, 0, 0);
+      }
+      if (canvasRef.current) {
+        canvasRef.current.style.cursor = 'crosshair';
+        canvasRef.current.style.pointerEvents = 'auto';
+      }
+      isFillingRef.current = false;
+    };
+
+    return () => {
+      if (workerRef.current) {
+        workerRef.current.terminate();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (selectedPage) drawPageToCanvas(selectedPage);
@@ -563,46 +587,6 @@ export default function ColoringModule({ onAddStars }) {
     return { x: (src.clientX - r.left) * sx, y: (src.clientY - r.top) * sy };
   };
 
-  const hexToRgb = (hex) => {
-    const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return m ? { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) } : null;
-  };
-
-  const floodFill = useCallback((ctx, sx, sy, colorHex) => {
-    const W = ctx.canvas.width, H = ctx.canvas.height;
-    const ix = Math.floor(sx), iy = Math.floor(sy);
-    if (ix < 0 || ix >= W || iy < 0 || iy >= H) return;
-    const imgData = ctx.getImageData(0, 0, W, H);
-    const d = imgData.data;
-    const sp = (iy * W + ix) * 4;
-    const sr = d[sp], sg = d[sp+1], sb = d[sp+2];
-    // Block on dark strokes (outline)
-    if (sr < 60 && sg < 60 && sb < 60) return;
-    const fc = hexToRgb(colorHex);
-    if (!fc) return;
-    if (Math.abs(sr-fc.r)<5 && Math.abs(sg-fc.g)<5 && Math.abs(sb-fc.b)<5) return;
-    const TOL = 80;
-    const match = (p) => {
-      if (d[p]<60 && d[p+1]<60 && d[p+2]<60) return false;
-      return Math.abs(d[p]-sr)<=TOL && Math.abs(d[p+1]-sg)<=TOL && Math.abs(d[p+2]-sb)<=TOL;
-    };
-    const stack = [[ix, iy]];
-    while (stack.length) {
-      const [x, y] = stack.pop();
-      let py = y, pp = (py * W + x) * 4;
-      while (py >= 0 && match(pp)) { py--; pp -= W*4; }
-      pp += W*4; py++;
-      let rl=false, rr=false;
-      while (py < H && match(pp)) {
-        d[pp]=fc.r; d[pp+1]=fc.g; d[pp+2]=fc.b; d[pp+3]=255;
-        if (x>0) { if (match(pp-4)) { if(!rl){stack.push([x-1,py]);rl=true;} } else rl=false; }
-        if (x<W-1) { if (match(pp+4)) { if(!rr){stack.push([x+1,py]);rr=true;} } else rr=false; }
-        pp+=W*4; py++;
-      }
-    }
-    ctx.putImageData(imgData, 0, 0);
-  }, []);
-
   const handlePointerDown = (e) => {
     e.preventDefault();
     const {x, y} = getXY(e);
@@ -612,17 +596,25 @@ export default function ColoringModule({ onAddStars }) {
       if (isFillingRef.current) return;
       isFillingRef.current = true;
       kidAudio.playPop();
+      
       // Disable pointer events so double-tap doesn't queue another fill
       canvasRef.current.style.pointerEvents = 'none';
       canvasRef.current.style.cursor = 'wait';
-      // requestAnimationFrame: lets browser paint the cursor change first,
-      // then runs the fill — avoids UI freeze without React re-render
-      requestAnimationFrame(() => {
-        floodFill(ctx, x, y, activeColor);
-        canvasRef.current.style.cursor = 'crosshair';
-        canvasRef.current.style.pointerEvents = 'auto';
-        isFillingRef.current = false;
+      
+      // Send data to Web Worker
+      const W = ctx.canvas.width;
+      const H = ctx.canvas.height;
+      const imgData = ctx.getImageData(0, 0, W, H);
+      
+      workerRef.current.postMessage({
+        imgData,
+        W,
+        H,
+        sx: x,
+        sy: y,
+        colorHex: activeColor
       });
+
     } else {
       setIsDrawing(true);
       ctx.beginPath();
@@ -775,8 +767,8 @@ export default function ColoringModule({ onAddStars }) {
           <div className="coloring-canvas-frame">
             <canvas
               ref={canvasRef}
-              width={600}
-              height={600}
+              width={400}
+              height={400}
               className="coloring-canvas"
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
