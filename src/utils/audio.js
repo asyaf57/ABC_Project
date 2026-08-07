@@ -32,18 +32,30 @@ class KidAudioEngine {
     return this.audioCtx;
   }
 
-  // Base Speech Suara Anak Ceria & Bersemangat (Pitch 1.45, Rate 0.8)
-  speak(text, rate = 0.8, pitch = 1.45) {
+  getIndonesianFemaleVoice() {
+    let idVoice = this.voices.find(v => (v.lang.includes('id') || v.lang.includes('ID')) && 
+      (v.name.includes('Female') || v.name.includes('Gadis') || v.name.includes('Google') || v.name.includes('Wanita')));
+    
+    if (!idVoice) {
+      // Fallback: pick the last Indonesian voice if there are multiple, to try getting a different one
+      const idVoices = this.voices.filter(v => v.lang.includes('id') || v.lang.includes('ID'));
+      idVoice = idVoices.length > 1 ? idVoices[idVoices.length - 1] : idVoices[0];
+    }
+    return idVoice;
+  }
+
+  // Base Speech Suara Wanita
+  speak(text, rate = 0.9, pitch = 1.1) {
     if (!this.synth) return;
 
     this.synth.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'id-ID';
-    utterance.rate = rate; // Pelan tapi bersemangat
-    utterance.pitch = pitch; // Suara anak ceria
+    utterance.rate = rate;
+    utterance.pitch = pitch;
 
-    const idVoice = this.voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
+    const idVoice = this.getIndonesianFemaleVoice();
     if (idVoice) {
       utterance.voice = idVoice;
     }
@@ -51,7 +63,7 @@ class KidAudioEngine {
     this.synth.speak(utterance);
   }
 
-  // Speech Pengucapan Abjad dengan Jeda & Suara Anak Bersemangat
+  // Speech Pengucapan Abjad dengan Jeda
   speakWithPause(letter, word) {
     if (!this.synth) return;
 
@@ -59,15 +71,15 @@ class KidAudioEngine {
 
     const u1 = new SpeechSynthesisUtterance(letter);
     u1.lang = 'id-ID';
-    u1.rate = 0.75; 
-    u1.pitch = 1.5;
+    u1.rate = 0.85; 
+    u1.pitch = 1.15;
 
     const u2 = new SpeechSynthesisUtterance(`${letter} untuuuk ${word}!`);
     u2.lang = 'id-ID';
-    u2.rate = 0.8;
-    u2.pitch = 1.45;
+    u2.rate = 0.9;
+    u2.pitch = 1.1;
 
-    const idVoice = this.voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
+    const idVoice = this.getIndonesianFemaleVoice();
     if (idVoice) {
       u1.voice = idVoice;
       u2.voice = idVoice;
@@ -81,7 +93,7 @@ class KidAudioEngine {
     }, 450);
   }
 
-  // Speech Fakta Menarik (Kecepatan Normal Bicara Cerita: Rate 0.95, Pitch 1.35)
+  // Speech Fakta Menarik
   speakFunFact(text) {
     if (!this.synth) return;
 
@@ -90,9 +102,9 @@ class KidAudioEngine {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'id-ID';
     utterance.rate = 0.95;
-    utterance.pitch = 1.35;
+    utterance.pitch = 1.05;
 
-    const idVoice = this.voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
+    const idVoice = this.getIndonesianFemaleVoice();
     if (idVoice) {
       utterance.voice = idVoice;
     }
@@ -100,7 +112,7 @@ class KidAudioEngine {
     this.synth.speak(utterance);
   }
 
-  // Speech Apresiasi Benar: Cepat & Energik seperti ucapan selamat nyata (Rate 1.05, Pitch 1.4)
+  // Speech Apresiasi Benar: Cepat & Energik
   speakAppreciation(text) {
     if (!this.synth) return;
 
@@ -108,10 +120,10 @@ class KidAudioEngine {
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'id-ID';
-    utterance.rate = 1.05; // Lebih cepat & energik!
-    utterance.pitch = 1.4;  // Ceria selamat!
+    utterance.rate = 1.05;
+    utterance.pitch = 1.15;
 
-    const idVoice = this.voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
+    const idVoice = this.getIndonesianFemaleVoice();
     if (idVoice) {
       utterance.voice = idVoice;
     }
@@ -119,7 +131,7 @@ class KidAudioEngine {
     this.synth.speak(utterance);
   }
 
-  // Speech Motivasi Kurang Tepat: Sedikit lebih cepat tapi intonasi LEMBUT (Rate 1.0, Pitch 1.25)
+  // Speech Motivasi Kurang Tepat
   speakMotivation(text) {
     if (!this.synth) return;
 
@@ -127,10 +139,10 @@ class KidAudioEngine {
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'id-ID';
-    utterance.rate = 1.0;  // Sedikit lebih cepat
-    utterance.pitch = 1.25; // Intonasi lembut & ramah
+    utterance.rate = 1.0; 
+    utterance.pitch = 1.05;
 
-    const idVoice = this.voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
+    const idVoice = this.getIndonesianFemaleVoice();
     if (idVoice) {
       utterance.voice = idVoice;
     }
