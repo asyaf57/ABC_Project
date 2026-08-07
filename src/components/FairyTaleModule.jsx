@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Play, Pause, ChevronRight, ChevronLeft, Volume2, BookOpen } from 'lucide-react';
+import { ArrowLeftCircle, Play, Pause, SkipForward, SkipBack, BookOpen, Home } from 'lucide-react';
 import { fairytales } from '../data/fairytales';
 import { kidAudio } from '../utils/audio';
 
@@ -8,6 +8,12 @@ export default function FairyTaleModule({ onAddStars }) {
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
+
+  const currentSceneIndexRef = useRef(currentSceneIndex);
+
+  useEffect(() => {
+    currentSceneIndexRef.current = currentSceneIndex;
+  }, [currentSceneIndex]);
 
   useEffect(() => {
     // Cleanup audio on unmount or when leaving the story
@@ -18,6 +24,17 @@ export default function FairyTaleModule({ onAddStars }) {
       }
     };
   }, []);
+
+  useEffect(() => {
+    const handleHardwareBack = (e) => {
+      if (selectedStory) {
+        e.preventDefault();
+        handleBackToList();
+      }
+    };
+    window.addEventListener('hardwareBackPress', handleHardwareBack);
+    return () => window.removeEventListener('hardwareBackPress', handleHardwareBack);
+  }, [selectedStory]);
 
   const handleSelectStory = (story) => {
     kidAudio.playPop();
@@ -64,17 +81,20 @@ export default function FairyTaleModule({ onAddStars }) {
 
   const playAudio = (src) => {
     if (!audioRef.current) {
-      audioRef.current = new Audio(src);
-      
-      // When audio ends, auto-advance to next scene
-      audioRef.current.onended = () => {
-        setTimeout(() => {
-          goToNextScene(true);
-        }, 1000); // 1 second pause between scenes
-      };
-    } else {
-      audioRef.current.src = src;
+      audioRef.current = new Audio();
     }
+    audioRef.current.src = src;
+    
+    // Always attach the latest onended handler
+    audioRef.current.onended = () => {
+      setIsPlaying(false);
+      setTimeout(() => {
+        // Auto-advance if not at the end
+        if (currentSceneIndexRef.current < selectedStory.scenes.length - 1) {
+          goToNextScene(true);
+        }
+      }, 800);
+    };
     
     audioRef.current.play().then(() => {
       setIsPlaying(true);
@@ -85,35 +105,42 @@ export default function FairyTaleModule({ onAddStars }) {
   };
 
   const goToNextScene = (autoPlay = false) => {
-    if (currentSceneIndex < selectedStory.scenes.length - 1) {
-      const nextIndex = currentSceneIndex + 1;
+    const currentIndex = currentSceneIndexRef.current;
+    if (currentIndex < selectedStory.scenes.length - 1) {
+      const nextIndex = currentIndex + 1;
       setCurrentSceneIndex(nextIndex);
       
+      // Stop current
+      if (audioRef.current) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
+      
       if (isPlaying || autoPlay) {
-        // Stop current
-        if (audioRef.current) audioRef.current.pause();
         // Play next after a tiny delay to allow render
         setTimeout(() => {
           playAudio(selectedStory.scenes[nextIndex].audio);
-        }, 100);
+        }, 150);
       }
-    } else {
-      // Story finished
-      setIsPlaying(false);
-      if (audioRef.current) audioRef.current.pause();
     }
   };
 
   const goToPrevScene = () => {
-    if (currentSceneIndex > 0) {
-      const prevIndex = currentSceneIndex - 1;
+    const currentIndex = currentSceneIndexRef.current;
+    if (currentIndex > 0) {
+      const prevIndex = currentIndex - 1;
       setCurrentSceneIndex(prevIndex);
       
+      // Stop current
+      if (audioRef.current) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
+      
       if (isPlaying) {
-        if (audioRef.current) audioRef.current.pause();
         setTimeout(() => {
           playAudio(selectedStory.scenes[prevIndex].audio);
-        }, 100);
+        }, 150);
       }
     }
   };
@@ -163,19 +190,23 @@ export default function FairyTaleModule({ onAddStars }) {
   // 2. Story View (Detail Cerita)
   return (
     <div className="flex flex-col items-center w-full h-full animate-fade-in p-4 lg:p-8">
-      {/* Top Navigation */}
-      <div className="w-full max-w-5xl flex justify-between items-center mb-6">
+      {/* Top Navigation & Title */}
+      <div className="w-full max-w-5xl flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
         <button 
           onClick={handleBackToList}
-          className="flex items-center gap-2 bg-white/20 hover:bg-white/40 backdrop-blur-md text-white px-5 py-3 rounded-full font-bold transition-all shadow-lg hover:shadow-xl transform hover:-translate-x-1 border-2 border-white/30"
+          className="self-start md:self-auto flex items-center gap-2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white px-6 py-3 rounded-full font-bold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1 border-2 border-white/40 group"
         >
-          <ArrowLeft size={24} />
-          Kembali
+          <ArrowLeftCircle size={28} className="text-yellow-300 group-hover:-translate-x-1 transition-transform" />
+          <span className="drop-shadow-md">Kembali</span>
         </button>
-        <h2 className="text-3xl font-bold text-white drop-shadow-lg text-center px-4 bg-black/20 rounded-full py-2 border border-white/20">
-          {selectedStory.title}
-        </h2>
-        <div className="w-24"></div> {/* Spacer for center alignment */}
+        
+        <div className="flex-1 text-center">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-500 drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] px-4 py-2">
+            {selectedStory.title}
+          </h2>
+        </div>
+        
+        <div className="hidden md:block w-[140px]"></div> {/* Spacer for center alignment */}
       </div>
 
       {/* Main Story Panel */}
@@ -190,60 +221,62 @@ export default function FairyTaleModule({ onAddStars }) {
         </div>
 
         {/* Image Panel */}
-        <div className="relative w-full flex-1 min-h-[40vh] bg-black/40 flex items-center justify-center overflow-hidden">
+        <div className="relative w-full h-[45vh] md:h-[55vh] bg-black/60 flex items-center justify-center overflow-hidden rounded-t-[2.5rem] shadow-inner">
           {/* Only render current scene image – key forces re-mount for fresh fade-in */}
           <img
             key={currentScene.id}
             src={currentScene.image}
             alt={`Scene ${currentSceneIndex + 1}`}
-            style={{ animation: 'sceneFadeIn 0.6s ease forwards' }}
-            className="w-full h-full object-contain p-4"
+            style={{ animation: 'sceneFadeIn 0.8s ease forwards' }}
+            className="w-full h-full object-contain p-2 md:p-4 drop-shadow-2xl"
           />
-          
-          {/* Navigation Overlay Controls */}
-          <div className="absolute inset-y-0 left-0 w-1/4 flex items-center justify-start p-4 z-20">
-            {currentSceneIndex > 0 && (
-              <button 
-                onClick={(e) => { e.stopPropagation(); goToPrevScene(); kidAudio.playPop(); }}
-                className="bg-black/40 hover:bg-black/60 text-white p-3 rounded-full backdrop-blur-sm transition-all shadow-lg transform hover:scale-110 opacity-50 hover:opacity-100"
-              >
-                <ChevronLeft size={40} />
-              </button>
-            )}
-          </div>
-          <div className="absolute inset-y-0 right-0 w-1/4 flex items-center justify-end p-4 z-20">
-            {currentSceneIndex < selectedStory.scenes.length - 1 && (
-              <button 
-                onClick={(e) => { e.stopPropagation(); goToNextScene(); kidAudio.playPop(); }}
-                className="bg-black/40 hover:bg-black/60 text-white p-3 rounded-full backdrop-blur-sm transition-all shadow-lg transform hover:scale-110 opacity-50 hover:opacity-100"
-              >
-                <ChevronRight size={40} />
-              </button>
-            )}
-          </div>
 
           {/* Scene number badge */}
-          <div className="absolute top-3 left-3 z-20 bg-black/50 text-white text-sm font-bold px-3 py-1 rounded-full backdrop-blur-sm">
-            Scene {currentSceneIndex + 1} / {selectedStory.scenes.length}
+          <div className="absolute top-4 left-4 z-20 bg-gradient-to-r from-blue-600 to-blue-400 text-white text-sm font-bold px-4 py-1.5 rounded-full shadow-lg border-2 border-white/30">
+            Adegan {currentSceneIndex + 1} / {selectedStory.scenes.length}
           </div>
         </div>
 
 
         {/* Text and Controls Panel */}
-        <div className="bg-white p-6 md:p-8 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.1)] relative z-30">
-          <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-6">
+        <div className="bg-white p-6 md:p-8 shadow-[0_-10px_30px_rgba(0,0,0,0.2)] relative z-30 rounded-b-[2.5rem]">
+          <div className="max-w-4xl mx-auto flex flex-col items-center gap-6">
             
-            {/* Play Button - Large and prominent */}
-            <button 
-              onClick={handlePlayPause}
-              className={`flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.15)] transition-all transform hover:scale-105 active:scale-95 ${isPlaying ? 'bg-amber-100 text-amber-600 border-4 border-amber-300' : 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white border-4 border-white'}`}
-            >
-              {isPlaying ? <Pause size={40} fill="currentColor" /> : <Play size={40} fill="currentColor" className="ml-2" />}
-            </button>
+            {/* Playback Controls Row */}
+            <div className="flex items-center justify-center gap-6 md:gap-8 bg-gray-50 px-8 py-4 rounded-full shadow-inner border border-gray-100">
+              {/* Prev Button */}
+              <button 
+                onClick={(e) => { e.stopPropagation(); goToPrevScene(); kidAudio.playPop(); }}
+                disabled={currentSceneIndex === 0}
+                className={`flex items-center justify-center w-14 h-14 rounded-full transition-all transform ${currentSceneIndex === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-br from-blue-400 to-indigo-500 text-white shadow-lg hover:scale-110 active:scale-95 border-2 border-white'}`}
+              >
+                <SkipBack size={28} fill="currentColor" />
+              </button>
+
+              {/* Play/Pause Button - Large and prominent */}
+              <button 
+                onClick={handlePlayPause}
+                className={`flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center shadow-[0_8px_25px_rgba(0,0,0,0.2)] transition-all transform hover:scale-110 active:scale-95 ${isPlaying ? 'bg-gradient-to-br from-red-400 to-rose-600 text-white border-4 border-red-200' : 'bg-gradient-to-br from-green-400 to-emerald-600 text-white border-4 border-green-200'}`}
+              >
+                {isPlaying ? <Pause size={42} fill="currentColor" /> : <Play size={42} fill="currentColor" className="ml-2" />}
+              </button>
+
+              {/* Next Button */}
+              <button 
+                onClick={(e) => { e.stopPropagation(); goToNextScene(); kidAudio.playPop(); }}
+                disabled={currentSceneIndex === selectedStory.scenes.length - 1}
+                className={`flex items-center justify-center w-14 h-14 rounded-full transition-all transform ${currentSceneIndex === selectedStory.scenes.length - 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-br from-blue-400 to-indigo-500 text-white shadow-lg hover:scale-110 active:scale-95 border-2 border-white'}`}
+              >
+                <SkipForward size={28} fill="currentColor" />
+              </button>
+            </div>
 
             {/* Story Text */}
-            <div className="flex-1 text-center md:text-left min-h-[100px] flex items-center">
-              <p className="text-2xl md:text-3xl text-gray-800 font-medium leading-relaxed font-sans animate-fade-in" key={currentSceneIndex}>
+            <div className="w-full text-center min-h-[100px] flex items-center justify-center bg-yellow-50 rounded-2xl p-6 border-2 border-yellow-100 relative">
+              <div className="absolute top-2 left-2 text-yellow-300 opacity-50">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
+              </div>
+              <p className="text-2xl md:text-3xl text-gray-800 font-medium leading-relaxed font-sans animate-fade-in relative z-10" key={currentSceneIndex}>
                 {currentScene.text}
               </p>
             </div>

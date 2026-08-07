@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import WelcomeScreen from './components/WelcomeScreen';
 import HomeScreen from './components/HomeScreen';
@@ -15,6 +15,7 @@ import Footer from './components/Footer';
 import KidModuleBoundary from './components/KidModuleBoundary';
 import ProfileModal from './components/ProfileModal';
 import { supabase } from './utils/supabaseClient';
+import { LogOut, X } from 'lucide-react';
 
 export default function App() {
   const [account, setAccount] = useState(null);
@@ -26,6 +27,58 @@ export default function App() {
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [isParentModalOpen, setIsParentModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  
+  // Hardware Back Button & Exit Modal State
+  const [backPressCount, setBackPressCount] = useState(0);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const activeScreenRef = useRef(activeScreen);
+
+  useEffect(() => {
+    activeScreenRef.current = activeScreen;
+  }, [activeScreen]);
+
+  // Handle Hardware Back Button
+  useEffect(() => {
+    // Push dummy state to trap back button
+    window.history.pushState(null, '', window.location.href);
+
+    const handlePopState = (e) => {
+      // Re-push to prevent browser from navigating back and closing app
+      window.history.pushState(null, '', window.location.href);
+
+      // Dispatch custom event so modules (like FairyTale) can intercept
+      const backEvent = new CustomEvent('hardwareBackPress', { cancelable: true });
+      const notIntercepted = window.dispatchEvent(backEvent);
+
+      if (notIntercepted) {
+        if (activeScreenRef.current === 'module') {
+          setActiveScreen('home');
+          setBackPressCount(0);
+        } else {
+          // On Home or Welcome screen
+          setBackPressCount(prev => {
+            const newCount = prev + 1;
+            if (newCount >= 2) {
+              setShowExitConfirm(true);
+              return 0; // reset
+            } else {
+              // Toast or small delay to reset press count
+              setTimeout(() => setBackPressCount(0), 2000);
+              return newCount;
+            }
+          });
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const confirmExitApp = () => {
+    window.close();
+    window.location.href = "about:blank"; // Fallback
+  };
 
   // Load account from Supabase Auth & LocalStorage fallback
   useEffect(() => {
@@ -305,6 +358,33 @@ export default function App() {
         stars={stars}
         onLogout={handleLogout}
       />
+
+      {/* Exit Confirmation Modal */}
+      {showExitConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white rounded-[2rem] max-w-sm w-full p-6 shadow-2xl border-4 border-yellow-300 transform transition-all text-center">
+            <div className="bg-red-100 text-red-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <LogOut size={40} />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">Keluar Aplikasi?</h3>
+            <p className="text-gray-600 mb-8">Apakah kamu yakin ingin menutup aplikasi ABC?</p>
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setShowExitConfirm(false)}
+                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-full font-bold transition-colors"
+              >
+                Tidak
+              </button>
+              <button 
+                onClick={confirmExitApp}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded-full font-bold transition-colors shadow-md hover:shadow-lg"
+              >
+                Ya, Keluar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
