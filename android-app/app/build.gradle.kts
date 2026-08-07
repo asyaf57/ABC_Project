@@ -4,6 +4,10 @@ plugins {
   alias(libs.plugins.kotlin.serialization)
 }
 
+base {
+    archivesName.set("SmartABC")
+}
+
 android {
     namespace = "com.example.smartabc"
     compileSdk = 36
@@ -13,7 +17,6 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-        setProperty("archivesBaseName", "SmartABC")
     }
 
     buildTypes {
