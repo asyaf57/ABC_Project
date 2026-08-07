@@ -15,6 +15,7 @@ import Footer from './components/Footer';
 import KidModuleBoundary from './components/KidModuleBoundary';
 import ProfileModal from './components/ProfileModal';
 import { supabase } from './utils/supabaseClient';
+import { AdsManager } from './utils/ads';
 import { LogOut, X } from 'lucide-react';
 
 export default function App() {
@@ -201,6 +202,9 @@ export default function App() {
       } catch (e) {}
       return next;
     });
+    
+    // Increment play count for Interstitial Ad
+    AdsManager.incrementPlayCount();
   };
 
   const handleNavigateHome = () => {
@@ -238,6 +242,14 @@ export default function App() {
   useEffect(() => {
     // Apply background theme to body
     document.body.className = getThemeClass();
+    
+    // Show banner only on specific screens (e.g., home or modules)
+    // Actually, let's show banner everywhere except welcome
+    if (activeScreen === 'welcome') {
+      AdsManager.hideBanner();
+    } else {
+      AdsManager.showBanner();
+    }
   }, [activeScreen, activeModule]);
 
   return (

@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { kidAudio } from '../utils/audio';
+import { AdsManager } from '../utils/ads';
+import { Lock } from 'lucide-react';
 
 // ============================================================
 // FULL-COLOR KID-FRIENDLY SVG ICONS (Guaranteed cross-device)
@@ -92,21 +94,24 @@ const PAGES = [
     title: 'Gambar 4',
     emoji: '🖌️',
     bg: 'linear-gradient(135deg, #d1fae5, #a7f3d0)',
-    imgUrl: '/coloring_pages/page4.png'
+    imgUrl: '/coloring_pages/page4.png',
+    isLocked: true
   },
   {
     id: 'page5',
     title: 'Gambar 5',
     emoji: '✨',
     bg: 'linear-gradient(135deg, #fdf4ff, #fce7f3)',
-    imgUrl: '/coloring_pages/page5.png'
+    imgUrl: '/coloring_pages/page5.png',
+    isLocked: true
   },
   {
     id: 'page6',
     title: 'Gambar 6',
     emoji: '🌈',
     bg: 'linear-gradient(135deg, #e0f2fe, #dbeafe)',
-    imgUrl: '/coloring_pages/page6.png'
+    imgUrl: '/coloring_pages/page6.png',
+    isLocked: true
   }
 ];
 
@@ -139,6 +144,24 @@ export default function ColoringModule({ onAddStars }) {
   const [isDrawing, setIsDrawing] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [celebrationCount, setCelebrationCount] = useState(0);
+  
+  // Track unlocked pages
+  const [unlockedPages, setUnlockedPages] = useState(() => {
+    try {
+      const saved = localStorage.getItem('abc_unlocked_coloring');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const unlockPage = (pageId) => {
+    const newUnlocked = [...unlockedPages, pageId];
+    setUnlockedPages(newUnlocked);
+    try {
+      localStorage.setItem('abc_unlocked_coloring', JSON.stringify(newUnlocked));
+    } catch (e) {}
+  };
 
   // Initialize Web Worker for flood fill
   useEffect(() => {
@@ -280,22 +303,50 @@ export default function ColoringModule({ onAddStars }) {
           </div>
         </div>
         <div className="coloring-gallery-grid">
-          {PAGES.map(page => (
-            <button
-              key={page.id}
-              className="coloring-gallery-card"
-              onClick={() => { kidAudio.playPop(); setSelectedPage(page); setIsFinished(false); }}
-              style={{ '--card-bg': page.bg }}
-            >
-              <div className="coloring-gallery-preview" style={{ background: page.bg }}>
-                <img src={page.imgUrl} alt={page.title} className="coloring-gallery-svg" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-              </div>
-              <div className="coloring-gallery-label">
-                <span className="coloring-gallery-emoji">{page.emoji}</span>
-                <span className="coloring-gallery-name">{page.title}</span>
-              </div>
-            </button>
-          ))}
+          {PAGES.map(page => {
+            const locked = page.isLocked && !unlockedPages.includes(page.id);
+            return (
+              <button
+                key={page.id}
+                className="coloring-gallery-card relative"
+                onClick={() => {
+                  kidAudio.playPop();
+                  if (locked) {
+                    kidAudio.speak('Tonton video sebentar untuk membuka gambar ini ya!');
+                    AdsManager.showRewarded((success) => {
+                      if (success) {
+                        unlockPage(page.id);
+                        kidAudio.playSuccess();
+                        kidAudio.speak('Hore! Gambar sudah terbuka!');
+                      }
+                    });
+                  } else {
+                    setSelectedPage(page); 
+                    setIsFinished(false);
+                  }
+                }}
+                style={{ '--card-bg': page.bg, opacity: locked ? 0.8 : 1 }}
+              >
+                {locked && (
+                  <div className="absolute inset-0 bg-black/30 z-10 flex flex-col items-center justify-center rounded-[24px]">
+                    <div className="bg-white/90 p-3 rounded-full mb-2 animate-bounce">
+                      <Lock size={32} className="text-yellow-500" />
+                    </div>
+                    <span className="text-white font-bold bg-black/50 px-3 py-1 rounded-full text-sm">
+                      Tonton Iklan
+                    </span>
+                  </div>
+                )}
+                <div className="coloring-gallery-preview" style={{ background: page.bg }}>
+                  <img src={page.imgUrl} alt={page.title} className="coloring-gallery-svg" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                </div>
+                <div className="coloring-gallery-label">
+                  <span className="coloring-gallery-emoji">{page.emoji}</span>
+                  <span className="coloring-gallery-name">{page.title}</span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     );
