@@ -79,9 +79,9 @@ class MainActivity : ComponentActivity() {
         mainLayout?.addView(webView)
         setContentView(mainLayout)
         
-        // Load the web app
-        // NOTE: For local testing during dev, use http://10.0.2.2:5173
-        webView.loadUrl("https://smartabc.netlify.app")
+        // Load the web app from local assets
+        // This ensures the app runs fully offline and uses the bundled React build!
+        webView.loadUrl("file:///android_asset/www/index.html")
 
         // Handle Android back button
         onBackPressedDispatcher.addCallback(this) {
